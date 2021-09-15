@@ -1,6 +1,6 @@
 
 
-class Othello():
+class Chess():
 
     def __init__(self):
 

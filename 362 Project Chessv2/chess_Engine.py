@@ -4,8 +4,8 @@
 
 import pygame, sys, time, math, copy, chess, os
 
-#These are varoables representing colors Black and White for pygame applications. 
-BLACK = (0,0,0)
+#These are varoables representing colors Brown and White for pygame applications. 
+Brown = (139,69,19)
 WHITE = (255, 255, 255)
 displayWidth = 800
 displayHeight = 800
@@ -40,13 +40,13 @@ class Chess_Board(object):
                     pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                     
                 elif(y % 2 == 0 and x %2 == 1):
-                    pygame.draw.rect(self.surface, BLACK, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 
                 elif (y %2 == 1 and x%2 == 1):
                     pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 
                 elif (y %2 == 1 and x%2 == 0):
-                    pygame.draw.rect(self.surface, BLACK, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
 
        
         self.load_Images()

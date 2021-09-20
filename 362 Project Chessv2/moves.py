@@ -25,7 +25,8 @@ def is_valid_move(self):
             return True
 
         # forward 2 from 7th row of board
-        elif destination.y + 2 == selected.y and selected.y == 6:
+        elif (destination.x == selected.x and 
+            destination.y + 2 == selected.y and selected.y == 6):
             #TODO: check for obstruction
             return True
 
@@ -42,7 +43,8 @@ def is_valid_move(self):
             return True
 
         # forward 2 from 2nd row of board
-        elif destination.y - 2 == selected.y and selected.y == 1:
+        elif (destination.x == selected.x and 
+            destination.y - 2 == selected.y and selected.y == 1):
             #TODO: check for obstruction
             return True
 

@@ -81,7 +81,11 @@ class Chess_Board(object):
         pass
 
     def handle_mousedown(self, event):
-        pass 
+        print(pygame.mouse.get_pos())
+        select_x, select_y = pygame.mouse.get_pos()
+        select_x = math.floor(select_x / 100)
+        select_y = math.floor(select_y / 100)
+
         #This event tracks the position where the user clicks the mouse
     def handle_mouseup(self, event):
         pass
@@ -115,6 +119,8 @@ class Chess_Board(object):
                     self.key_pressed_down_event(event)
                 elif event.type == pygame.KEYUP:
                     self.key_let_go_event(event)
+                elif pygame.mouse.get_pressed()[0]:
+                    self.handle_mousedown(event)
                 else:
                     pass
 

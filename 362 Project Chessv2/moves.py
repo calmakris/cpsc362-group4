@@ -11,7 +11,7 @@ def is_valid_move(self, selected, destination):
     # Do not allow move if player's own piece is in destination
     # except castling (TODO)
     destinationID = self.game.board[destination['y']][destination['x']]
-    if selected['pieceID'] <= 6 and destinationID <= 6:
+    if 0 < selected['pieceID'] <= 6 and 0 < destinationID <= 6:
         return False
     elif selected['pieceID'] >= 11 and destinationID >= 11:
         return False

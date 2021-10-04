@@ -1,0 +1,1 @@
+	Chess.start_game()

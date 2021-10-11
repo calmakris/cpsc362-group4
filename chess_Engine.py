@@ -32,7 +32,7 @@ class Chess_Board(object):
         self.target = { 'y': -1, 'x': -1 }
 
         self.valid_moves = self.game.get_valid_moves()
-        print(self.valid_moves)
+        pprint(self.valid_moves)
     
     def setUp(self):
         #imports all available pygame modules

@@ -386,3 +386,36 @@ class Chess():
                                            (down, left)) )
 
         return moves
+    
+    ###################################################
+    #                  IN PROGRESS                    #
+    ###################################################
+    def check_for_checkmate(self, moves):
+    #1.) get all moves
+        # moves = generate_moves() # to generate all moves
+    #2.) make move
+        for i in range(len(moves)-1,-1,-1): # iterating from list backwards
+            self.do_the_move(moves[i]) # makes the moves in a list
+    #3.) if in check remove all invalid moves
+        if self.check():
+            moves.remove(moves[i]) # removes all invalid moves
+        if len(moves) == 0: # if list of valid moves is 0 then checkmate
+            if self.check():
+                self.checkmate = True
+        else:
+            self.checkmate = False
+        return moves
+
+
+    # checks to see if kings are under attack
+    def check(self):
+        if self.white_turn():
+            if self.all_opponent_attacks(self.location_of_white_king[x], self.self.location_of_white_king[y]):
+                return True
+            else:
+                return False    
+        else:
+            if self.all_opponent_attacks(self.location_of_black_king[x], self.self.location_of_black_king[y]): 
+                return True
+            else:
+                return False 

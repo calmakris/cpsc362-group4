@@ -31,6 +31,10 @@ class Chess():
         self.board[ from_dict['y'] ][ from_dict['x'] ] = 0
         self.board[ to_dict['y'] ][ to_dict['x'] ] = from_dict['piece']
 
+    def undo_move(self, from_dict, to_dict):
+        self.board[ from_dict['y'] ][ from_dict['x'] ] = from_dict['piece']
+        self.board[ to_dict['y'] ][ to_dict['x'] ] = to_dict['piece']
+
     def is_valid_move(self, select, targetTuple):
 
         target = { 'piece': self.board[ targetTuple[0] ][ targetTuple[1] ],

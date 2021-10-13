@@ -3,7 +3,6 @@
 #functions will be called.
 
 import pygame, sys, time, math, copy, chess, os
-from pprint import pprint # TODO: remove this on final
 
 #These are varoables representing colors Brown and White for pygame applications. 
 Brown = (139, 69, 19)
@@ -29,10 +28,10 @@ class Chess_Board(object):
 
         self.user_clicks = 0 # 0 = nothing selected, 1 = something selected
         self.select = { 'piece': -1, 'y': -1, 'x': -1 }
-        self.target = { 'y': -1, 'x': -1 }
+        self.target = { 'piece': -1, 'y': -1, 'x': -1 }
+        self.prev_move = ()
 
         self.valid_moves = self.game.get_valid_moves()
-        pprint(self.valid_moves)
     
     def setUp(self):
         #imports all available pygame modules
@@ -107,8 +106,6 @@ class Chess_Board(object):
         select_y = math.floor(select_y / 100)
         piece = self.game.board[select_y][select_x]
 
-        print( (select_y, select_x) )
-
         # Checking if the user is just selecting a piece to move
         if self.user_clicks == 0:
             
@@ -130,23 +127,19 @@ class Chess_Board(object):
                     self.select['x'] = select_x
                     self.user_clicks = 1
             else:
+                self.target['piece'] = piece
                 self.target['y'] = select_y
                 self.target['x'] = select_x
                 
                 move = ( (self.select['y'], self.select['x']), 
                          (select_y, select_x) )
 
-                # check if select-target combo is in available moves
-                """ if self.game.is_valid_move( self.select, self.target ):
-                    self.game.make_move( self.select, self.target )
-                    self.user_clicks = 2 """
-                
                 if move in self.valid_moves:
                     self.game.make_move( self.select, self.target )
+                    self.prev_move = ( self.select, self.target )
                     self.user_clicks = 2
                 
-
-        #This event tracks the position where the user clicks the mouse
+    #This event tracks the position where the user clicks the mouse
     def handle_mouseup(self, event):
         pass
         #This can be used to get the position where the user stopped clicking the mouse
@@ -156,13 +149,19 @@ class Chess_Board(object):
         #Will be used when implementing animated piece movement.
     
     def keyboard_commands(self, event):
+        # This function can be used to add more key commands later down the line.
         if event.key == pygame.K_q and pygame.key.get_mods() and pygame.KMOD_CTRL:
             quit()
             sys.exit()
-        # This function can be used to add more key commands later down the line.
+        elif event.key == pygame.K_z and pygame.key.get_mods() and pygame.KMOD_CTRL and self.prev_move:
+            # CTRL + Z undos the move
+            # TODO: consider castling
+            self.game.undo_move( self.prev_move[0], self.prev_move[1] )
+            self.prev_move = ()
+            self.user_clicks = 2
     
     def new_game(self):
-        self.game.__init__() #resets the entire game 
+        self.game.__init__() #resets the entire game
     
     #This function promotes the pawn 
     def pawnPromotion(self, player):
@@ -241,7 +240,7 @@ class Chess_Board(object):
 
                 self.user_clicks = 0
                 self.select = { 'piece': -1, 'y': -1, 'x': -1 }
-                self.target = { 'y': -1, 'x': -1 }
+                self.target = { 'piece': -1, 'y': -1, 'x': -1 }
                 self.valid_moves.clear()
 
                 self.draw_board()
@@ -249,7 +248,6 @@ class Chess_Board(object):
                 pygame.display.update()
 
                 self.valid_moves = self.game.get_valid_moves()
-                pprint(self.valid_moves)
 
                 # print(self.game.board) debug purposes                 
     

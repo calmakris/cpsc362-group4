@@ -372,7 +372,7 @@ class Chess_Board(object):
 
                 self.user_clicks = 0
                 self.select = { 'piece': -1, 'y': -1, 'x': -1 }
-                self.target = { 'y': -1, 'x': -1 }
+                self.target = { 'piece': -1, 'y': -1, 'x': -1 }
                 self.valid_moves.clear()
 
                 self.draw_board()

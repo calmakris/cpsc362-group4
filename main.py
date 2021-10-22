@@ -1,5 +1,10 @@
 import chess_Engine
+import sys
+
+
+
+
 
 if __name__ == "__main__":
 	Chess = chess_Engine.Chess_Board()
-	Chess.start_game()
+	sys.exit(Chess.start_game())

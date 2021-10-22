@@ -3,6 +3,8 @@
 #functions will be called.
 
 import pygame, sys, time, math, copy, chess, os
+import numpy
+from pprint import pprint # TODO: remove this on final
 
 #These are varoables representing colors Brown and White for pygame applications. 
 Brown = (139, 69, 19)
@@ -11,6 +13,7 @@ displayWidth = 800
 displayHeight = 800
 squareSize = 100
 IMAGES = {}
+pygame.init()
 
 #This calls pygame to exit the program.
 def quit():
@@ -23,38 +26,37 @@ class Chess_Board(object):
 
     #python constructor for the Chess_Board class.
     def __init__(self):
+        self.surface = pygame.display.set_mode((displayWidth,displayHeight))
         self.keys_pressed_down = list()
         self.game = chess.Chess() #Note not set up yet
 
         self.user_clicks = 0 # 0 = nothing selected, 1 = something selected
         self.select = { 'piece': -1, 'y': -1, 'x': -1 }
         self.target = { 'piece': -1, 'y': -1, 'x': -1 }
-        self.prev_move = ()
+        self.prev_move = 0
 
         self.valid_moves = self.game.get_valid_moves()
+        print(self.valid_moves)
     
     def setUp(self):
         #imports all available pygame modules
-        pygame.init()
+        
         pygame.display.set_caption('Chess')
         #Sets the parameter on how big the pygame screen will be
-        self.surface = pygame.display.set_mode((displayWidth,displayHeight))
+        
 
         for x in range(0,8):
             for y in range(0,8):
                 if(y % 2 == 0 and x %2 == 0):
                     pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
-                    
                 elif(y % 2 == 0 and x %2 == 1):
                     pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
-                
                 elif (y %2 == 1 and x%2 == 1):
                     pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
 
-       
         self.load_Images()
         self.drawPieces()
 
@@ -80,6 +82,99 @@ class Chess_Board(object):
                 
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+    
+
+
+    def hello(self):
+        print("hello world")
+
+    def main_Menu(self):
+        
+        self.surface.fill((105,0,0))
+        
+        text1 = "Welcome to Chess:"
+        font = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        text1 = font.render(text1, 1, (255, 215, 0))
+        text_rect1 = text1.get_rect(center = (displayWidth// 2, displayHeight // 8))
+        self.surface.blit(text1, text_rect1)
+
+        
+        
+        button  = pygame.Rect(displayWidth//4, displayHeight//4, displayWidth/2,  displayHeight/8)
+        button2 = pygame.Rect(displayWidth//4, displayHeight//2, displayWidth//2, displayHeight//8)
+        button3 = pygame.Rect(displayWidth//4, displayHeight - displayHeight//4, displayWidth//2, displayHeight//8)
+        pygame.draw.rect(self.surface, [211,211,211], button)
+        pygame.draw.rect(self.surface, [211,211,211], button2)
+        pygame.draw.rect(self.surface, [211,211,211], button3)
+
+        text2 = "Start Game"
+        font = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        text2 = font.render(text2, 1, (0,0,0))
+        text_rect2 = text2.get_rect(center = (displayWidth// 2, displayHeight // 4 + displayHeight//16))
+        self.surface.blit(text2, text_rect2)
+
+        text3 = "Options"
+        font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        text3 = font.render(text3, 1, (0,0,0))
+        text_rect3 = text3.get_rect(center = (displayWidth// 2, displayHeight // 2 + displayHeight//16))
+        self.surface.blit(text3, text_rect3)
+
+
+        text4 = "Quit Game"
+        font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        text4 = font.render(text4, 1, (0,0,0))
+        text_rect4 = text4.get_rect(center = (displayWidth// 2, displayHeight - displayHeight//4 + displayHeight//16))
+        self.surface.blit(text4, text_rect4)
+
+        pygame.display.update()
+        while True:
+
+            pygame.draw.rect(self.surface, [211,211,211], button)
+            pygame.draw.rect(self.surface, [211,211,211], button2)
+            pygame.draw.rect(self.surface, [211,211,211], button3)
+            self.surface.blit(text2, text_rect2)
+            self.surface.blit(text4, text_rect4)
+            self.surface.blit(text3, text_rect3)
+
+            for event in pygame.event.get():
+                mouse_pos = pygame.mouse.get_pos()
+                if event.type == pygame.QUIT:
+                    quit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    
+                    if button.collidepoint(mouse_pos):
+                       self.draw_board()
+                       self.drawPieces()
+                       pygame.display.update()
+                       return None
+                    elif button2.collidepoint(mouse_pos):
+                       pass
+                    elif button3.collidepoint(mouse_pos):
+                        quit()
+                elif button.collidepoint(mouse_pos):
+                    pygame.draw.rect(self.surface, [255,255,255], button)
+                    self.surface.blit(text2, text_rect2)
+                elif button2.collidepoint(mouse_pos):
+                    pygame.draw.rect(self.surface, [255,255,255], button2)
+                    self.surface.blit(text3, text_rect3)
+                elif button3.collidepoint(mouse_pos):
+                    pygame.draw.rect(self.surface, [255,255,255], button3)
+                    self.surface.blit(text4, text_rect4)
+
+                
+                pygame.display.update()
+
+                
+        
+        
+            
+        
+                        
+        
+
+            
+
+
         
     def load_Images(self):
         pieces = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16]
@@ -91,7 +186,7 @@ class Chess_Board(object):
         for x in range(8):
             for y in range(8):
                 piece = self.game.board[y][x]
-                if piece != 0:
+                if piece != 0 and (x,y) != (self.select['x'], self.select['y']):
                     self.surface.blit(IMAGES[piece], pygame.Rect(x*squareSize, y*squareSize, squareSize, squareSize))
 
     def key_pressed_down_event(self, event):
@@ -106,21 +201,37 @@ class Chess_Board(object):
         select_y = math.floor(select_y / 100)
         piece = self.game.board[select_y][select_x]
 
+        print( (select_y, select_x) )
+
         # Checking if the user is just selecting a piece to move
         if self.user_clicks == 0:
             
-            # Ensure player 1 selected white
+            # Ensure players select their corresponding piece
             if ((self.game.player == 1 and 1 <= piece <= 6) or 
                 (self.game.player == 2 and 11 <= piece <= 16)):
                     self.select['piece'] = piece
                     self.select['y'] = select_y
                     self.select['x'] = select_x
                     self.user_clicks = 1
+                    
+
 
         # Checks when user has already selected a piece
         elif self.user_clicks == 1:
+            
+            #if the player selects the tile with the selected piece let it go.
+            if (select_x == self.select['x'] and select_y == self.select['y']):
+                self.game.board[select_y][select_x] = self.select['piece']
+                self.select['piece'] = -1
+                self.select['y'] = -1
+                self.select['x'] = -1
+                self.user_clicks = 0
+                self.draw_board()
+                self.drawPieces()
+                pygame.display.update()
+            
             # if player still selects their piece, set that piece as new selected
-            if ((self.game.player == 1 and 1 <= piece <= 6) or 
+            elif ((self.game.player == 1 and 1 <= piece <= 6) or 
                 (self.game.player == 2 and 11 <= piece <= 16)):
                     self.select['piece'] = piece
                     self.select['y'] = select_y
@@ -134,34 +245,44 @@ class Chess_Board(object):
                 move = ( (self.select['y'], self.select['x']), 
                          (select_y, select_x) )
 
+                # check if select-target combo is in available moves
+                """ if self.game.is_valid_move( self.select, self.target ):
+                    self.game.make_move( self.select, self.target )
+                    self.user_clicks = 2 """
+                
                 if move in self.valid_moves:
                     self.game.make_move( self.select, self.target )
-                    self.prev_move = ( self.select, self.target )
+                    self.prev_move += 1
+                    self.game.prev_moves.append((self.select, self.target))
                     self.user_clicks = 2
                 
-    #This event tracks the position where the user clicks the mouse
+
+        #This event tracks the position where the user clicks the mouse
     def handle_mouseup(self, event):
         pass
         #This can be used to get the position where the user stopped clicking the mouse
     
     def handle_mousemove(self, event):
-        pass 
+        pass
+
         #Will be used when implementing animated piece movement.
     
     def keyboard_commands(self, event):
-        # This function can be used to add more key commands later down the line.
         if event.key == pygame.K_q and pygame.key.get_mods() and pygame.KMOD_CTRL:
             quit()
             sys.exit()
-        elif event.key == pygame.K_z and pygame.key.get_mods() and pygame.KMOD_CTRL and self.prev_move:
+
+        elif event.key == pygame.K_z and pygame.key.get_mods() and pygame.KMOD_CTRL and self.prev_move > 0:
             # CTRL + Z undos the move
             # TODO: consider castling
-            self.game.undo_move( self.prev_move[0], self.prev_move[1] )
-            self.prev_move = ()
+            self.game.undo_move( )
+            self.prev_move -= 1
             self.user_clicks = 2
+        # This function can be used to add more key commands later down the line.
     
     def new_game(self):
-        self.game.__init__() #resets the entire game
+        self.game.__init__() #resets the entire game 
+
     
     #This function promotes the pawn 
     def pawnPromotion(self, player):
@@ -182,25 +303,28 @@ class Chess_Board(object):
 
     #This function checks if there is a pawn has reached the opposite side
     #If it has, it returns true. Else false
-    def isPawnPromotion(self):
+    def isPawnPromotion(self, y, x):
         #scan the board
         #self.game.board
-        for y in range(0,8):
-            for x in range(0,8):
-                piece = self.game.board[y][x] 
-                #check if pawn is white (1) and has reached the opposite side
-                if piece == 1 and y == 0:
-                    return True
-                #check if pawn is black (11) and has reached the opposite side
-                elif piece == 11 and y == 7:
-                    return True
+        if (self.game.player == 1):
+            if (self.select['piece'] == 1 and y == 0):
+                return True
+        
+        elif (self.game.player == 2):
+            if (self.select['piece'] == 11 and y == 7):
+                return True
+
         return False
 
     # This function starts up the game and sets all the parameters of said game.
     # Not much now but more can be added later
     def start_game(self):
-        self.ai = None
+
         self.setUp()
+        self.main_Menu()
+       
+        
+        self.ai = None
         
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
@@ -216,12 +340,20 @@ class Chess_Board(object):
                     self.handle_mousedown(event)
                 else:
                     pass
-          
+            
+            if(self.user_clicks == 1):
+                select_x, select_y = pygame.mouse.get_pos()
+                self.draw_board()
+                self.drawPieces()
+                self.surface.blit(IMAGES[self.select['piece']] , (select_x-50, select_y-50))
+                pygame.display.update()
+                self.clock.tick(60)
+        
             # if user clicks is 2 then we know some sort of board state occured. Now we have to update the board.
             if (self.user_clicks == 2):
 
                 #Checks if the player can validly make a pawn promotion
-                if(self.isPawnPromotion()):
+                if(self.isPawnPromotion(self.target['y'], self.target['x'])):
                     #update the board to show that the pawn moved to edge of board
                     self.draw_board()
                     self.drawPieces()
@@ -240,7 +372,7 @@ class Chess_Board(object):
 
                 self.user_clicks = 0
                 self.select = { 'piece': -1, 'y': -1, 'x': -1 }
-                self.target = { 'piece': -1, 'y': -1, 'x': -1 }
+                self.target = { 'y': -1, 'x': -1 }
                 self.valid_moves.clear()
 
                 self.draw_board()
@@ -248,6 +380,7 @@ class Chess_Board(object):
                 pygame.display.update()
 
                 self.valid_moves = self.game.get_valid_moves()
+                pprint(self.valid_moves)
 
                 # print(self.game.board) debug purposes                 
     

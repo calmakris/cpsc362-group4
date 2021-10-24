@@ -20,10 +20,12 @@ class Chess():
             [ 1,  1,  1,  1,  1,  1,  1,  1],
             [ 3,  2,  4,  6,  5,  4,  2,  3]
         ]
+        self.player1 = 0
+        self.player2 = 0
     #takes in the piece remove piece to calculate the score and the player to add the points to    
     def point_counter(self, piece, cur_score):
         piece_num = piece
-        point_dict = {1:1, 2:3, 4:3, 3:5, 5:9}
+        point_dict = {0:0,1:1, 2:3, 4:3, 3:5, 5:9}
         if piece_num > 10:
             piece_num = piece_num - 10
         cur_score = cur_score + point_dict[piece_num]

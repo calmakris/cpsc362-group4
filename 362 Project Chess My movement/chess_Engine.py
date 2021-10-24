@@ -7,8 +7,10 @@ import pygame, sys, time, math, copy, chess, os
 #These are varoables representing colors Brown and White for pygame applications. 
 Brown = (139,69,19)
 WHITE = (255, 255, 255)
+RED = (255,0,0)
+YELLOW = (255,255,0)
 displayWidth = 800
-displayHeight = 800
+displayHeight = 900
 squareSize = 100
 IMAGES = {}
 
@@ -54,7 +56,10 @@ class Chess_Board(object):
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
 
-       
+        pygame.draw.rect(self.surface,RED,pygame.Rect(800,100,100,800))
+        font = pygame.font.Font('freesansbold.ttf', 50)
+        text = font.render("player 1: " + str(self.game.point_counter(0,self.game.player1))+" player 2: "+str(self.game.point_counter(0,self.game.player2)), True, YELLOW)
+        self.surface.blit(text,(90,820))
         self.load_Images()
         self.drawPieces()
 
@@ -120,6 +125,13 @@ class Chess_Board(object):
                     self.selected_square = (select_x, select_y)
                     self.selected_piece = self.game.board[select_y][select_x]
                     self.user_clicks = 1
+                    available_moves = self.game.get_available_moves(self.selected_piece, self.selected_square[0], self.selected_square[1])
+                    for index, tuple in enumerate(available_moves):
+                        #change this to color in the board
+                        print(tuple)
+                        pygame.draw.rect(self.surface, RED, pygame.Rect(tuple[1] * squareSize , tuple[0]* squareSize , squareSize , squareSize ))
+                        self.drawPieces()
+                        pygame.display.update()
             
             #This is the same as above but for player 2.
             elif self.game.player == 2:
@@ -127,6 +139,12 @@ class Chess_Board(object):
                     self.selected_square = (select_x, select_y)
                     self.selected_piece = self.game.board[select_y][select_x]
                     self.user_clicks = 1
+                    available_moves = self.game.get_available_moves(self.selected_piece, self.selected_square[0], self.selected_square[1])
+                    for index, tuple in enumerate(available_moves):
+                        #change this to color in the board
+                        pygame.draw.rect(self.surface, YELLOW, pygame.Rect(tuple[1] * squareSize , tuple[0]* squareSize , squareSize , squareSize ))
+                        self.drawPieces()
+                        pygame.display.update()
 
             #Not needed      
             else:
@@ -146,6 +164,15 @@ class Chess_Board(object):
                     self.selected_square = (select_x, select_y)
                     self.selected_piece = self.game.board[select_y][select_x]
                     self.user_clicks = 1
+                    #Player 1 selects another piece so we generated the moves for that piece
+                    print("Generate player 1 piece moves")
+                    available_moves = self.game.get_available_moves(self.selected_piece, self.selected_square[0], self.selected_square[1])
+                    self.draw_board()
+                    for index, tuple in enumerate(available_moves):
+                        #change this to color in the board
+                        pygame.draw.rect(self.surface, RED, pygame.Rect(tuple[1] * squareSize , tuple[0]* squareSize , squareSize , squareSize ))
+                        self.drawPieces()
+                        pygame.display.update()
                
                 #if its a piece he does not own then get all the available moves that the selected piece can make and check to see if the target space is valid. If it is then the player commits to the move.
                 else:
@@ -154,6 +181,10 @@ class Chess_Board(object):
                     available_moves = self.game.get_available_moves(self.selected_piece, self.selected_square[0], self.selected_square[1])
                     print(len(available_moves))
                     print(available_moves)
+                    for index, tuple in enumerate(available_moves):
+                        #Player 1 does not select another piece
+                        pygame.draw.rect(self.surface, RED, pygame.Rect(tuple[1] * squareSize , tuple[0]* squareSize , squareSize , squareSize ))
+                        self.drawPieces()
                     for x in available_moves:
                         if x == self.target_square:
                             self.game.make_move(self.selected_square[0], self.selected_square[1], select_x, select_y, self.selected_piece)
@@ -165,7 +196,14 @@ class Chess_Board(object):
                     self.selected_square = (select_x, select_y)
                     self.selected_piece = self.game.board[select_y][select_x]
                     self.user_clicks = 1
-
+                    #Player 2 selected another pieces so we change the color of the rectangle here
+                    available_moves = self.game.get_available_moves(self.selected_piece, self.selected_square[0], self.selected_square[1])
+                    self.draw_board()
+                    for index, tuple in enumerate(available_moves):
+                        #change this to color in the board
+                        pygame.draw.rect(self.surface, YELLOW, pygame.Rect(tuple[1] * squareSize , tuple[0]* squareSize , squareSize , squareSize ))
+                        self.drawPieces()
+                        pygame.display.update()
                 #if its a piece he does not own then get all the available moves that the selected piece can make and check to see if the target space is valid. If it is then the player commits to the move.
                 else:
                     self.target_square = (select_y, select_x)
@@ -173,6 +211,12 @@ class Chess_Board(object):
                     available_moves = self.game.get_available_moves(self.selected_piece, self.selected_square[0], self.selected_square[1])
                     print(len(available_moves))
                     print(available_moves)
+                    print("Generate player 2 piece moves")
+                    for index, tuple in enumerate(available_moves):
+                        #change this to color in the board
+                        pygame.draw.rect(self.surface, YELLOW, pygame.Rect(tuple[1] * squareSize , tuple[0]* squareSize , squareSize , squareSize ))
+                        self.drawPieces()
+                        pygame.display.update()
                     for x in available_moves:
                         if x == self.target_square:
                             self.game.make_move(self.selected_square[0], self.selected_square[1], select_x, select_y, self.selected_piece)

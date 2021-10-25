@@ -5,8 +5,11 @@ class Chess():
         self.player = 1
         self._white_king = (7,4)
         self._black_king = (0,4)
-        self.incheck = False
-
+        self.check_mate = False
+        self.Stale_Mate = False
+        self.in_check = False
+        self.player1 = 0
+        self.player2 = 0
         self.prev_moves = []
         # self.board_change = false could be used to determine if change occured? 
         # classification for differentiating pieces
@@ -22,8 +25,11 @@ class Chess():
             [ 1,  1,  1,  1,  1,  1,  1,  1],
             [ 3,  2,  4,  5,  6,  4,  2,  3]
         ]
+       
     
-    #takes in the piece remove piece to calculate the score and the player to add the points to    
+    #takes in the piece remove piece to calculate the score and the player to add the points to
+    
+
     def point_counter(self, piece, cur_score):
         piece_num = piece
         point_dict = {1:1, 2:3, 4:3, 3:5, 5:9}
@@ -37,10 +43,11 @@ class Chess():
         self.board[ from_dict['y'] ][ from_dict['x'] ] = 0
         self.board[ to_dict['y'] ][ to_dict['x'] ] = from_dict['piece']
         #if kings move keep track where they move to.
+        self.prev_moves.append((from_dict, to_dict))
         if(from_dict['piece'] == 6):
             self._white_king = ([to_dict['y'], to_dict['x']])
         if(from_dict['piece'] == 16):
-            self._black_king == ([to_dict['y'], to_dict['x']])
+            self._black_king = ([to_dict['y'], to_dict['x']])
         
 
     def is_valid_move(self, select, targetTuple):
@@ -144,7 +151,7 @@ class Chess():
                     if select['piece'] == 1 and self.player == 1:
                         # forward moves
                         if self.is_valid_move( select, (up, x) ):
-                            moves.append( ((select['y'], select['x']),
+                            moves.append(((select['y'], select['x']),
                                            (up, x)) )
                             
                             if y == 6 and self.is_valid_move( select, ((y-2)%8, x) ):
@@ -619,16 +626,64 @@ class Chess():
     def undo_move(self):
         self.board[self.prev_moves[-1][0]['y']][self.prev_moves[-1][0]['x']] = self.prev_moves[-1][0]['piece']
         self.board[self.prev_moves[-1][1]['y']][self.prev_moves[-1][1]['x']] = self.prev_moves[-1][1]['piece']
+        if(self.prev_moves[-1][0]['piece'] == 6):
+            self._white_king = (self.prev_moves[-1][0]['y'], self.prev_moves[-1][0]['x'])
+        if(self.prev_moves[-1][0]['piece']== 16):
+            self._black_king = (self.prev_moves[-1][0]['y'], self.prev_moves[-1][0]['x'])
+        
         self.prev_moves.pop()
 
-    def check(self):
-    
-        #note get available moves does not work as it doesn't distinguish between friend and foe.
+    #This function takes the moves from get valid moves and further validates them.
+    def further_validation(self, moves):
+        for x in range(len(moves)-1, -1, -1):
+            selected_piece = self.board[moves[x][0][0]][moves[x][0][1]]
+            target_piece = self.board[moves[x][1][0]][moves[x][1][1]]
+            selected = {
+                'piece' : selected_piece,
+                'y' : moves[x][0][0],
+                'x' : moves[x][0][1]
+            }
+            targeted = {
+                'piece' : target_piece,
+                'y' : moves[x][1][0],
+                'x' : moves[x][1][1]
+            }
+            self.make_move(selected, targeted)
 
-        if self.player == 1:
+            if self.check():
+                moves.remove(moves[x])
+            
+            self.undo_move()
+        return moves
+        
+            
+
+
+
+    def check(self):
+        #note get available moves does not work as it doesn't distinguish between friend and foe.
+    
+        if(self.player == 1):
             king = self._white_king
-        if self.player == 2:
+            self.player = 2
+        else:
             king = self._black_king
+            self.player = 1
+        print("Kings Position, Row: " + str(king[0]) + " Column: " + str(king[1]))
+        #get opponents moves
+        moves = self.get_valid_moves()
+        #switch back players
+        if(self.player == 1):
+            self.player = 2
+        else:
+            self.player = 1
+        
+        for move in moves:
+            print("Target Square, Row " + str(move[1][0]) + " Column: " + str(move[1][1]))
+            if(move[1][0] == king[0] and move[1][1] == king[1]):
+                return True
+        
+        return False
         
 
 

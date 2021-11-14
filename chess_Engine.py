@@ -2,7 +2,7 @@
 #Essentially this will be where pygame is programmed and the other file will be where the chess 
 #functions will be called.
 
-import pygame, sys, time, math, copy, chess, os
+import pygame, sys, time, math, copy, chess, os, random
 
 #These are varoables representing colors Brown and White for pygame applications. 
 Brown = (139, 69, 19)
@@ -33,6 +33,8 @@ class Chess_Board(object):
         self.select = { 'piece': -1, 'y': -1, 'x': -1 }
         self.target = { 'piece': -1, 'y': -1, 'x': -1 }
         self.prev_move = 0
+
+        self.ai = False
 
         self.valid_moves = self.game.get_valid_moves()
     
@@ -346,14 +348,11 @@ class Chess_Board(object):
             # if player has rook selected then selects a king, this is a castling move input
             if ((self.game.player == 1 and ((self.select['piece'] == 3 and piece == 6) or (self.select['piece'] == 6 and piece == 3))) or
                 self.game.player == 2 and ((self.select['piece'] == 13 and piece == 16) or (self.select['piece'] == 16 and piece == 13))):
-                
-                print('CASTLING MOVE!')
 
                 move = ( (self.select['y'], self.select['x']),
                          (select_y, select_x) )
 
                 if move in self.valid_moves:
-                    print('VALID MOVE!')
                     self.target['piece'] = piece
                     self.target['y'] = select_y
                     self.target['x'] = select_x
@@ -747,6 +746,28 @@ class Chess_Board(object):
 
         return False
 
+    def prepare_next_turn(self):
+        if (self.game.player == 1):
+            self.game.player = 2
+        elif (self.game.player == 2):
+            self.game.player = 1
+
+        self.select = { 'piece': -1, 'y': -1, 'x': -1 }
+        self.target = { 'piece': -1, 'y': -1, 'x': -1 }
+        self.valid_moves.clear()
+
+        self.draw_board()
+        self.drawPieces()
+        pygame.display.update()
+        moves = self.game.get_valid_moves()
+        valid_moves = self.game.further_validation(moves)
+        if len(valid_moves) == 0 and self.game.check():
+            if (self.game.player == 1):
+                self.end_screen(6)
+            else:
+                self.end_screen(16)
+        self.valid_moves = moves
+
     # This function starts up the game and sets all the parameters of said game.
     # Not much now but more can be added later
     def start_game(self):
@@ -756,77 +777,68 @@ class Chess_Board(object):
         
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quit()
-                elif event.type == pygame.KEYDOWN:
-                    self.key_pressed_down_event(event)
-                elif event.type == pygame.KEYUP:
-                    self.key_let_go_event(event)
-                elif pygame.mouse.get_pressed()[0]:
-                    self.handle_mousedown(event)
-                else:
-                    pass
+            if self.game.player == 2 and self.ai:
+                # Random select move AI
+                time.sleep(3)
+                random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
+                select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
+                target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
 
-            if(self.user_clicks == 1):
-                #code to generate possible moves and to animate moving the pawn
-                select_x, select_y = pygame.mouse.get_pos()
-                self.draw_board()
-                available_moves = self.valid_moves
-                selected_moves = []
-                for x in available_moves:
-                    if(x[0][0] == self.select['y'] and x[0][1] == self.select['x']):
-                        selected_moves.append(x)
-                for x in selected_moves:
-                    #change this to color in the board
-                    if(self.game.player == 1):
-                        pygame.draw.rect(self.surface, RED, pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
-                    elif(self.game.player == 2):
-                        pygame.draw.rect(self.surface, (255,255,0), pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+                self.game.make_move(select, target)
+                self.prepare_next_turn()
 
-                self.drawPieces()
-                self.surface.blit(IMAGES[self.select['piece']] , (select_x-50, select_y-50))
-                pygame.display.update()
-                self.clock.tick(60)
-        
-            # if user clicks is 2 then we know some sort of board state occured. Now we have to update the board.
-            if (self.user_clicks == 2):
-
-                #Checks if the player can validly make a pawn promotion
-                if(self.isPawnPromotion(self.target['y'], self.target['x'])):
-                    #update the board to show that the pawn moved to edge of board
-                    self.draw_board()
-                    self.drawPieces()
-                    pygame.display.update()
-                    #set pawn to player's selected piece
-                    self.game.board[ self.target['y'] ][ self.target['x'] ] = self.pawnPromotion(self.game.player)
-                    #this is to make pygame wait for user input.
-                    evemt = pygame.event.wait()
-                    pygame.display.update()
-
-                #now we need to reset everything.
-                if (self.game.player == 1):
-                    self.game.player = 2
-                elif (self.game.player == 2):
-                    self.game.player = 1
-
-                self.user_clicks = 0
-                self.select = { 'piece': -1, 'y': -1, 'x': -1 }
-                self.target = { 'y': -1, 'x': -1 }
-                self.valid_moves.clear()
-
-                self.draw_board()
-                self.drawPieces()
-                pygame.display.update()
-                moves = self.game.get_valid_moves()
-                valid_moves = self.game.further_validation(moves)
-                if len(valid_moves) == 0 and self.game.check():
-                    if (self.game.player == 1):
-                        self.end_screen(6)
+            else:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        quit()
+                    elif event.type == pygame.KEYDOWN:
+                        self.key_pressed_down_event(event)
+                    elif event.type == pygame.KEYUP:
+                        self.key_let_go_event(event)
+                    elif pygame.mouse.get_pressed()[0]:
+                        self.handle_mousedown(event)
                     else:
-                        self.end_screen(16)
-                self.valid_moves = moves
+                        pass
+
+                if(self.user_clicks == 1):
+                    #code to generate possible moves and to animate moving the pawn
+                    select_x, select_y = pygame.mouse.get_pos()
+                    self.draw_board()
+                    available_moves = self.valid_moves
+                    selected_moves = []
+                    for x in available_moves:
+                        if(x[0][0] == self.select['y'] and x[0][1] == self.select['x']):
+                            selected_moves.append(x)
+                    for x in selected_moves:
+                        #change this to color in the board
+                        if(self.game.player == 1):
+                            pygame.draw.rect(self.surface, RED, pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+                        elif(self.game.player == 2):
+                            pygame.draw.rect(self.surface, (255,255,0), pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+
+                    self.drawPieces()
+                    self.surface.blit(IMAGES[self.select['piece']] , (select_x-50, select_y-50))
+                    pygame.display.update()
+                    self.clock.tick(60)
+            
+                # if user clicks is 2 then we know some sort of board state occured. Now we have to update the board.
+                if (self.user_clicks == 2):
+
+                    #Checks if the player can validly make a pawn promotion
+                    if(self.isPawnPromotion(self.target['y'], self.target['x'])):
+                        #update the board to show that the pawn moved to edge of board
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                        #set pawn to player's selected piece
+                        self.game.board[ self.target['y'] ][ self.target['x'] ] = self.pawnPromotion(self.game.player)
+                        #this is to make pygame wait for user input.
+                        evemt = pygame.event.wait()
+                        pygame.display.update()
+
+                    self.prepare_next_turn()
+                    self.user_clicks = 0
     
-            self.clock.tick(60)
+                self.clock.tick(60)
 
         quit()

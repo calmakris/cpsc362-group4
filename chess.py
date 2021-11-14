@@ -720,13 +720,11 @@ class Chess():
 
         return moves
 
-    def check(self):
-        # Get opponents moves
+    def get_opponent_moves(self):
+        # Get opponent's moves
         if self.player == 1:
-            king = self._white_king
             self.player = 2
         else:
-            king = self._black_king
             self.player = 1
         
         moves = self.get_valid_moves()
@@ -736,13 +734,28 @@ class Chess():
             self.player = 2
         else:
             self.player = 1
-        
+
+        return moves
+
+    def check(self):
+        moves = self.get_opponent_moves()
+
+        if self.player == 1:
+            king = self._white_king
+        else:
+            king = self._black_king
+
         for move in moves:
             if(move[1][0] == king[0] and move[1][1] == king[1]):
                 return True
         
         return False
         
-
-
-
+    def get_piece_dict(self, row, column):
+        piece = self.board[row][column]
+        piece_dict = {
+            'piece' : piece,
+            'y'     : row,
+            'x'     : column   
+        }
+        return piece_dict

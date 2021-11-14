@@ -3,7 +3,6 @@
 #functions will be called.
 
 import pygame, sys, time, math, copy, chess, os
-from pprint import pprint # TODO: remove this on final
 
 #These are varoables representing colors Brown and White for pygame applications. 
 Brown = (139, 69, 19)
@@ -36,7 +35,6 @@ class Chess_Board(object):
         self.prev_move = 0
 
         self.valid_moves = self.game.get_valid_moves()
-        print(self.valid_moves)
     
     def setUp(self):
         #imports all available pygame modules
@@ -320,8 +318,6 @@ class Chess_Board(object):
         select_y = math.floor(select_y / squareSize)
         piece = self.game.board[select_y][select_x]
 
-        print( (select_y, select_x) )
-
         # Checking if the user is just selecting a piece to move
         if self.user_clicks == 0:
             
@@ -332,15 +328,11 @@ class Chess_Board(object):
                     self.select['y'] = select_y
                     self.select['x'] = select_x
                     self.user_clicks = 1
-                    #new stuff
-                    
-                    
-
 
         # Checks when user has already selected a piece
         elif self.user_clicks == 1:
             
-            #if the player selects the tile with the selected piece let it go.
+            # if the player selects the tile with the selected piece let it go.
             if (select_x == self.select['x'] and select_y == self.select['y']):
                 self.game.board[select_y][select_x] = self.select['piece']
                 self.select['piece'] = -1
@@ -350,17 +342,75 @@ class Chess_Board(object):
                 self.draw_board()
                 self.drawPieces()
                 pygame.display.update()
-            
+
+            # if player has rook selected then selects a king, this is a castling move input
+            if ((self.game.player == 1 and ((self.select['piece'] == 3 and piece == 6) or (self.select['piece'] == 6 and piece == 3))) or
+                self.game.player == 2 and ((self.select['piece'] == 13 and piece == 16) or (self.select['piece'] == 16 and piece == 13))):
+                
+                print('CASTLING MOVE!')
+
+                move = ( (self.select['y'], self.select['x']),
+                         (select_y, select_x) )
+
+                if move in self.valid_moves:
+                    print('VALID MOVE!')
+                    self.target['piece'] = piece
+                    self.target['y'] = select_y
+                    self.target['x'] = select_x
+
+                    if self.select['piece'] in (3, 13):
+                        rook = self.select
+                        king = {'piece': piece, 'y': select_y, 'x': select_x}
+                    elif self.select['piece'] in (6, 16):
+                        king = self.select
+                        rook = {'piece': piece, 'y': select_y, 'x': select_x}
+
+                    # Update before movement
+                    self.update_castling_state(rook)
+                    self.update_castling_state(king)
+
+                    # Queenside castling
+                    if rook['x'] < king['x']:
+                        # Move rook
+                        self.game.make_move( rook,
+                                             {'piece': rook['piece'],
+                                              'y': rook['y'],
+                                              'x': rook['x'] + 3} )
+                        
+                        # Move king
+                        self.game.make_move( king,
+                                             {'piece': king['piece'],
+                                              'y': king['y'],
+                                              'x': king['x'] - 2})
+
+                    # Kingside castling
+                    elif rook['x'] > king['x']:
+                        # Move rook
+                        self.game.make_move( rook,
+                                             {'piece': rook['piece'],
+                                              'y': rook['y'],
+                                              'x': rook['x'] - 2} )
+                        
+                        # Move king
+                        self.game.make_move( king,
+                                             {'piece': king['piece'],
+                                              'y': king['y'],
+                                              'x': king['x'] + 2})
+
+                    print(self.game.track_castling)
+                    self.user_clicks = 2                    
+
             # if player still selects their piece, set that piece as new selected
             elif ((self.game.player == 1 and 1 <= piece <= 6) or 
                 (self.game.player == 2 and 11 <= piece <= 16)):
-                    self.select['piece'] = piece
-                    self.select['y'] = select_y
-                    self.select['x'] = select_x
-                    self.user_clicks = 1
-                    self.draw_board()
-                    self.drawPieces()
-                    pygame.display.update()
+                self.select['piece'] = piece
+                self.select['y'] = select_y
+                self.select['x'] = select_x
+                self.user_clicks = 1
+                self.draw_board()
+                self.drawPieces()
+                pygame.display.update()
+
             else:
                 self.target['piece'] = piece
                 self.target['y'] = select_y
@@ -370,18 +420,28 @@ class Chess_Board(object):
                          (select_y, select_x) )
 
                 # check if select-target combo is in available moves
-                """ if self.game.is_valid_move( self.select, self.target ):
-                    self.game.make_move( self.select, self.target )
-                    self.user_clicks = 2 """
-                
                 if move in self.valid_moves:
                     self.game.make_move( self.select, self.target )
-                    print("Black King Moved!")
+                    self.update_castling_state(self.select)
                     self.prev_move += 1
                     self.user_clicks = 2
-                
 
-        #This event tracks the position where the user clicks the mouse
+    # Keeps track rooks and kings for castling
+    def update_castling_state(self, selected):
+        if selected['piece'] == 13 and selected['y'] == 0 and selected['x'] == 0:
+            self.game.track_castling['TopL'] = True
+        elif selected['piece'] == 13 and selected['y'] == 0 and selected['x'] == 7:
+            self.game.track_castling['TopR'] = True
+        elif selected['piece'] == 3 and selected['y'] == 7 and selected['x'] == 0:
+            self.game.track_castling['BotL'] = True
+        elif selected['piece'] == 3 and selected['y'] == 7 and selected['x'] == 7:
+            self.game.track_castling['BotR'] = True
+        elif selected['piece'] == 6 and selected['y'] == 7 and selected['x'] == 4:
+            self.game.track_castling['King1'] = True
+        elif selected['piece'] == 16 and selected['y'] == 0 and selected['x'] == 4:
+            self.game.track_castling['King2'] = True
+
+    #This event tracks the position where the user clicks the mouse
     def handle_mouseup(self, event):
         pass
         #This can be used to get the position where the user stopped clicking the mouse
@@ -405,8 +465,8 @@ class Chess_Board(object):
 
         elif event.key == pygame.K_z and pygame.key.get_mods() and pygame.KMOD_CTRL and self.prev_move > 0:
             # CTRL + Z undos the move
-            # TODO: consider castling
-            self.game.undo_move( )
+            #self.game.track_castling = copy.deepcopy(self.game.prev_moves[-1][2])
+            self.game.undo_move()
             self.prev_move -= 1
             self.user_clicks = 2
         # This function can be used to add more key commands later down the line.
@@ -693,9 +753,6 @@ class Chess_Board(object):
 
         self.setUp()
         self.main_Menu()
-       
-        
-        self.ai = None
         
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
@@ -706,12 +763,11 @@ class Chess_Board(object):
                     self.key_pressed_down_event(event)
                 elif event.type == pygame.KEYUP:
                     self.key_let_go_event(event)
-
                 elif pygame.mouse.get_pressed()[0]:
                     self.handle_mousedown(event)
                 else:
                     pass
-            
+
             if(self.user_clicks == 1):
                 #code to generate possible moves and to animate moving the pawn
                 select_x, select_y = pygame.mouse.get_pos()
@@ -728,7 +784,6 @@ class Chess_Board(object):
                     elif(self.game.player == 2):
                         pygame.draw.rect(self.surface, (255,255,0), pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
 
-                   
                 self.drawPieces()
                 self.surface.blit(IMAGES[self.select['piece']] , (select_x-50, select_y-50))
                 pygame.display.update()
@@ -771,10 +826,6 @@ class Chess_Board(object):
                     else:
                         self.end_screen(16)
                 self.valid_moves = moves
-                #pprint(self.valid_moves)
-                print("Black King Position, Row: " + str(self.game._black_king[0]) + " Column: " + str(self.game._black_king[1]) )
-                print(str(len(valid_moves)))
-                # print(self.game.board) debug purposes                 
     
             self.clock.tick(60)
 

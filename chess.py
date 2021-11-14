@@ -1,3 +1,4 @@
+import copy
 class Chess():
 
     def __init__(self):
@@ -25,10 +26,11 @@ class Chess():
             [ 1,  1,  1,  1,  1,  1,  1,  1],
             [ 3,  2,  4,  5,  6,  4,  2,  3]
         ]
-       
+
+        # False = hasn't moved; [TopL, TopR, BotL, BotR]
+        self.track_castling = {'TopL': False, 'TopR': False, 'BotL': False, 'BotR': False, 'King1': False, 'King2': False}  
     
     #takes in the piece remove piece to calculate the score and the player to add the points to
-    
 
     def point_counter(self, piece, cur_score):
         piece_num = piece
@@ -39,11 +41,13 @@ class Chess():
         return cur_score
 
     def make_move(self, from_dict, to_dict):
-        print(self.get_valid_moves())
+        #print(self.get_valid_moves())
         self.board[ from_dict['y'] ][ from_dict['x'] ] = 0
         self.board[ to_dict['y'] ][ to_dict['x'] ] = from_dict['piece']
+
+        self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling)))
+
         #if kings move keep track where they move to.
-        self.prev_moves.append((from_dict, to_dict))
         if(from_dict['piece'] == 6):
             self._white_king = ([to_dict['y'], to_dict['x']])
         if(from_dict['piece'] == 16):
@@ -266,7 +270,7 @@ class Chess():
                     
 
                     # Rooks and Queens' lateral moves
-                    if select['piece'] in (3, 5,) and self.player == 1:
+                    if select['piece'] in (3, 5) and self.player == 1:
 
                         # vertical moves
                         for upOne in range(y, -1, -1):
@@ -563,9 +567,6 @@ class Chess():
 
                                 new_y += 1
                                 new_x -= 1
-                    
-                    
-
 
                     # Kings
                     if select['piece'] is 16 and self.player == 2:
@@ -621,11 +622,73 @@ class Chess():
                             moves.append( ((select['y'], select['x']), 
                                            (down, left)) )
 
+                    # Castling Rules:
+                    # Cannot castle when in check (TODO)
+                    # Cannot castle when result leads to a check (taken care of by further_validation)
+                    # Rook and King never moved at all (checked below)
+                    # Space between Rook and King are empty (checked below)
+                    # Castling does not move through a check - so no enemy moves in spaces between Rook and King (can be added to further_validation)
+                    can_castle = True
+                    if self.player == 1:
+                        if select['piece'] == 3 and self.track_castling['King1'] == False:
+                            if self.track_castling['BotL'] == False:
+                                # check if space between BotL rook and King1 is empty
+                                can_castle = True
+                                for x in range(1, 4):
+                                    if self.board[7][x] != 0:
+                                        can_castle = False
+                                
+                                if can_castle:
+                                    # user drops rook on king or king on rook
+                                    moves.append( ((7, 0), (7, 4)) )
+                                    moves.append( ((7, 4), (7, 0)) )
+
+                            if self.track_castling['BotR'] == False:
+                                # check if space between King1 and BotR rook is empty
+                                can_castle = True
+                                for x in range(5, 7):
+                                    if self.board[7][x] != 0:
+                                        can_castle = False
+                                
+                                if can_castle:
+                                    # user drops rook on king or king on rook
+                                    moves.append( ((7, 4), (7, 7)) )
+                                    moves.append( ((7, 7), (7, 4)) )
+
+                    if self.player == 2:
+                        if select['piece'] == 13 and self.track_castling['King2'] == False:
+                            if self.track_castling['TopL'] == False:
+                                # check if space between TopL rook and Top1 is empty
+                                can_castle = True
+                                for x in range(1, 4):
+                                    if self.board[0][x] != 0:
+                                        can_castle = False
+                                
+                                if can_castle:
+                                    # user drops rook on king or king on rook
+                                    moves.append( ((0, 0), (0, 4)) )
+                                    moves.append( ((0, 4), (0, 0)) )
+
+                            if self.track_castling['TopR'] == False:
+                                # check if space between King2 and TopR rook is empty
+                                can_castle = True
+                                for x in range(5, 7):
+                                    if self.board[0][x] != 0:
+                                        can_castle = False
+                                
+                                if can_castle:
+                                    # user drops rook on king or king on rook
+                                    moves.append( ((0, 4), (0, 7)) )
+                                    moves.append( ((0, 7), (0, 4)) )
+
         return moves
 
     def undo_move(self):
         self.board[self.prev_moves[-1][0]['y']][self.prev_moves[-1][0]['x']] = self.prev_moves[-1][0]['piece']
         self.board[self.prev_moves[-1][1]['y']][self.prev_moves[-1][1]['x']] = self.prev_moves[-1][1]['piece']
+
+        self.track_castling = copy.deepcopy(self.prev_moves[-1][2])
+
         if(self.prev_moves[-1][0]['piece'] == 6):
             self._white_king = (self.prev_moves[-1][0]['y'], self.prev_moves[-1][0]['x'])
         if(self.prev_moves[-1][0]['piece']== 16):
@@ -654,32 +717,27 @@ class Chess():
                 moves.remove(moves[x])
             
             self.undo_move()
+
         return moves
-        
-            
-
-
 
     def check(self):
-        #note get available moves does not work as it doesn't distinguish between friend and foe.
-    
-        if(self.player == 1):
+        # Get opponents moves
+        if self.player == 1:
             king = self._white_king
             self.player = 2
         else:
             king = self._black_king
             self.player = 1
-        print("Kings Position, Row: " + str(king[0]) + " Column: " + str(king[1]))
-        #get opponents moves
+        
         moves = self.get_valid_moves()
-        #switch back players
-        if(self.player == 1):
+
+        # Switch back players
+        if self.player == 1:
             self.player = 2
         else:
             self.player = 1
         
         for move in moves:
-            print("Target Square, Row " + str(move[1][0]) + " Column: " + str(move[1][1]))
             if(move[1][0] == king[0] and move[1][1] == king[1]):
                 return True
         

@@ -1,4 +1,6 @@
 import copy
+import pygame
+
 class Chess():
 
     def __init__(self):
@@ -12,6 +14,7 @@ class Chess():
         self.player1 = 0
         self.player2 = 0
         self.prev_moves = []
+        self.movesound = pygame.mixer.Sound('ChessClick.wav')
         # self.board_change = false could be used to determine if change occured? 
         # classification for differentiating pieces
         # White: Pawn = 1, Knight = 2, Rook = 3, Bishop = 4, Queen = 5, King = 6
@@ -26,10 +29,84 @@ class Chess():
             [ 1,  1,  1,  1,  1,  1,  1,  1],
             [ 3,  2,  4,  5,  6,  4,  2,  3]
         ]
+        self.white_pawn_position_values = [
+        [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
+        [5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0],
+        [1.0,  1.0,  2.0,  3.0,  3.0,  2.0,  1.0,  1.0],
+        [0.5,  0.5,  1.0,  2.5,  2.5,  1.0,  0.5,  0.5],
+        [0.0,  0.0,  0.0,  2.0,  2.0,  0.0,  0.0,  0.0],
+        [0.5, -0.5, -1.0,  0.0,  0.0, -1.0, -0.5,  0.5],
+        [0.5,  1.0, 1.0,  -2.0, -2.0,  1.0,  1.0,  0.5],
+        [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0]
+        ]
+
+        self.black_pawn_position_values = reverse_list(self.white_pawn_position_values)   
+
+        self.white_knight_position_values = [
+        [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0],
+        [-4.0, -2.0,  0.0,  0.0,  0.0,  0.0, -2.0, -4.0],
+        [-3.0,  0.0,  1.0,  1.5,  1.5,  1.0,  0.0, -3.0],
+        [-3.0,  0.5,  1.5,  2.0,  2.0,  1.5,  0.5, -3.0],
+        [-3.0,  0.0,  1.5,  2.0,  2.0,  1.5,  0.0, -3.0],
+        [-3.0,  0.5,  1.0,  1.5,  1.5,  1.0,  0.5, -3.0],
+        [-4.0, -2.0,  0.0,  0.5,  0.5,  0.0, -2.0, -4.0],
+        [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0]
+        ]
+
+        self.black_knight_position_values = reverse_list(self.white_knight_position_values)
+
+        self.white_king_position_values =   [
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0],
+        [ -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0],
+        [  2.0,  2.0,  0.0,  0.0,  0.0,  0.0,  2.0,  2.0 ],
+        [  2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0 ]
+        ]
+        
+        self.black_king_position_values = reverse_list(self.white_king_position_values)
+
+        self.white_queen_position_values = [
+        [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0],
+        [ -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0],
+        [ -1.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
+        [ -0.5,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
+        [  0.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
+        [ -1.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
+        [ -1.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0, -1.0],
+        [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0]
+        ]
+
+        self.black_queen_position_values = reverse_list(self.white_queen_position_values)
+
+        self.white_rook_position_values = [
+        [  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
+        [  0.5,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
+        [  0.0,   0.0, 0.0,  0.5,  0.5,  0.0,  0.0,  0.0]
+        ]
 
         # False = hasn't moved; [TopL, TopR, BotL, BotR]
         self.track_castling = {'TopL': False, 'TopR': False, 'BotL': False, 'BotR': False, 'King1': False, 'King2': False}  
-    
+        self.black_rook_position_values = reverse_list(self.white_rook_position_values)
+        
+        self.white_bishop_position_values = [
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+        [ -2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0],
+        [ -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0],
+        [  2.0,  2.0,  0.0,  0.0,  0.0,  0.0,  2.0,  2.0 ],
+        [  2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0 ]
+        ]
+        self.black_bishop_position_values = reverse_list(self.white_bishop_position_values)    
     #takes in the piece remove piece to calculate the score and the player to add the points to
 
     def point_counter(self, piece, cur_score):
@@ -73,7 +150,7 @@ class Chess():
                 if target['y'] + 1 == select['y'] and target['piece'] == 0:
                     return True
                 elif (target['y'] + 2 == select['y'] and select['y'] == 6 and
-                      self.board[ select['y'] - 1 ][ select['x'] ] == 0):
+                      self.board[ select['y'] - 1 ][ select['x'] ] == 0 and target['piece'] == 0):
                     return True
 
             # diagonal attacks
@@ -91,7 +168,7 @@ class Chess():
                 if target['y'] - 1 == select['y'] and target['piece'] == 0:
                     return True
                 elif (target['y'] - 2 == select['y'] and select['y'] == 1 and
-                      self.board[ select['y'] + 1 ][ select['x'] ] == 0):
+                      self.board[ select['y'] + 1 ][ select['x'] ] == 0 and target['piece'] == 0):
                     return True
 
             # diagonal attacks
@@ -720,6 +797,14 @@ class Chess():
 
         return moves
 
+    def find_king(self):
+        for i in range(0,8):
+            for j in range(0,8):
+                if(self.board[i][j] == 6):
+                    self._white_king = (i,j)
+                elif self.board[i][j] == 16:
+                    self._black_king = (i,j)
+
     def get_opponent_moves(self):
         # Get opponent's moves
         if self.player == 1:
@@ -750,6 +835,86 @@ class Chess():
                 return True
         
         return False
+
+    def advanced_evaluation(self):
+        
+        evaluation = 0
+
+        counter_row = 0
+        for x in self.board:
+            counter_column = 0
+            for y in x:
+                if y == 1:
+                    value = 10 + self.white_pawn_position_values[counter_row][counter_column]
+                    evaluation += value 
+                    
+                elif y == 11:
+                    value = 10 + self.black_pawn_position_values[counter_row][counter_column]
+                    evaluation -= value
+                   
+                elif y == 2:
+                    value = 30 + self.white_knight_position_values[counter_row][counter_column]
+                    evaluation += value
+                    
+                elif y == 12:
+                    value = 30 + self.black_knight_position_values[counter_row][counter_column]
+                    evaluation = evaluation - value
+                   
+                elif y == 3:
+                    value = 50 + self.white_rook_position_values[counter_row][counter_column]
+                    evaluation = evaluation + value 
+                  
+                elif y == 13:
+                    value = 50 + self.black_rook_position_values[counter_row][counter_column]
+                    evaluation = evaluation - value 
+                  
+                elif y == 4:
+                    value = 30 + self.white_bishop_position_values[counter_row][counter_column]
+                    evaluation = evaluation + value
+                    
+                elif y == 14:
+                    value = 30 + self.black_bishop_position_values[counter_row][counter_column]
+                    evaluation = evaluation - value 
+                  
+                elif y == 5:
+                    value = 90 + self.white_queen_position_values[counter_row][counter_column]
+                    evaluation = evaluation + value
+                   
+                elif y == 15:
+                    value = 90 + self.black_queen_position_values[counter_row][counter_column]
+                    evaluation = evaluation - value
+                   
+                elif y == 6:
+                    value = 900 + self.white_king_position_values[counter_row][counter_column]
+                    evaluation = evaluation + value 
+                   
+                elif y == 16:
+                    value = 900 + self.black_king_position_values[counter_row][counter_column]
+                    evaluation = evaluation - value 
+                    
+                counter_column += 1
+            counter_row += 1
+        return evaluation
+    
+
+    def actions(self):
+        actions = self.get_valid_moves()
+        actions = self.further_validation(actions)
+        return actions
+
+
+    def terminal_test(self):
+        available_moves = self.get_valid_moves()
+        available_moves = self.further_validation(available_moves)
+        if self.check() == True:
+            
+            if(len(available_moves) == 0):
+                return True
+        
+        if(len(available_moves) == 0):
+                return True
+        
+        return False
         
     def get_piece_dict(self, row, column):
         piece = self.board[row][column]
@@ -759,3 +924,9 @@ class Chess():
             'x'     : column   
         }
         return piece_dict
+
+def reverse_list(state):
+    reverse = []
+    for x in range(len(state)-1, -1, -1 ):
+        reverse.append(state[x])
+    return reverse

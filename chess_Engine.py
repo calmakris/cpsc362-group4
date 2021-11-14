@@ -2,17 +2,25 @@
 #Essentially this will be where pygame is programmed and the other file will be where the chess 
 #functions will be called.
 
-import pygame, sys, time, math, copy, chess, os, random
+import pygame, sys, time, math, copy, chess, os, random, numpy as np
 
-#These are varoables representing colors Brown and White for pygame applications. 
-Brown = (139, 69, 19)
+#These are varoables representing colors BROWN and White for pygame applications.
+available_moves_tf = True
+undo_moves_tf = True
+BROWN = (139, 69, 19)
 WHITE = (255, 255, 255)
+PURPLE = (106, 90, 205)
+BLUE = (28, 155, 188)
+GREEN = (60, 179, 113)
 RED = (255,0,0)
 displayWidth = 800
 displayHeight = 800
 squareSize = displayHeight//8
+COVERIMAGES = {}
 IMAGES = {}
+pygame.mixer.pre_init(44100, -16, 2, 2048)
 pygame.init()
+pack = 'images/Originals'
 
 #This calls pygame to exit the program.
 def quit():
@@ -33,10 +41,16 @@ class Chess_Board(object):
         self.select = { 'piece': -1, 'y': -1, 'x': -1 }
         self.target = { 'piece': -1, 'y': -1, 'x': -1 }
         self.prev_move = 0
+        self.buttonclick = pygame.mixer.Sound('buttonClick.wav')
+        self.movesound = pygame.mixer.Sound('ChessClick.wav')
 
         self.ai = False
+        self.ai_undo = False
+        self.ai_mode = "alpha-beta"
 
         self.valid_moves = self.game.get_valid_moves()
+        self.square1color = WHITE
+        self.square2color = BROWN
     
     def setUp(self):
         #imports all available pygame modules
@@ -48,16 +62,16 @@ class Chess_Board(object):
         for x in range(0,8):
             for y in range(0,8):
                 if(y % 2 == 0 and x %2 == 0):
-                    pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, self.square1color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 elif(y % 2 == 0 and x %2 == 1):
-                    pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 elif (y %2 == 1 and x%2 == 1):
-                    pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, self.square1color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 
                 elif (y %2 == 1 and x%2 == 0):
-                    pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
     
-        self.load_Images()
+        self.load_Images(pack)
         self.drawPieces()
 
         # updates the pygame screen.
@@ -71,17 +85,17 @@ class Chess_Board(object):
     def draw_board(self):
           for x in range(8):
             for y in range(8):
-                if(y % 2 == 0 and x %2 == 0):
-                    pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                if (y % 2 == 0 and x %2 == 0):
+                   pygame.draw.rect(self.surface, self.square1color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                     
-                elif(y % 2 == 0 and x %2 == 1):
-                    pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                elif (y % 2 == 0 and x %2 == 1):
+                    pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 
                 elif (y %2 == 1 and x%2 == 1):
-                    pygame.draw.rect(self.surface, WHITE, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, self.square1color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
                 
                 elif (y %2 == 1 and x%2 == 0):
-                    pygame.draw.rect(self.surface, Brown, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+                    pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
 
     def draw_text(self, text, font, color, surface, x, y):
         textobj = font.render(text, 1, color)
@@ -96,7 +110,9 @@ class Chess_Board(object):
         screen = pygame.display.set_mode(resolution)
         font = pygame.font.SysFont(None, displayHeight//4)
         button_font = pygame.font.SysFont(None, displayHeight//11)
+        self.backgroundmusic()
 
+        clock = pygame.time.Clock()
         while True:
             screen.fill((0,0,0))
 
@@ -106,11 +122,14 @@ class Chess_Board(object):
 
             button1 = pygame.Rect(displayWidth//4, displayHeight//4, displayWidth/2,  displayHeight/8)
             button2 = pygame.Rect(displayWidth//4, displayHeight//2, displayWidth//2, displayHeight//8)
+            button3 = pygame.Rect(displayWidth//4, (displayHeight//2) + (displayHeight//4), displayWidth//2, displayHeight//8)
 
             pygame.draw.rect(screen, (255, 255, 255), button1)
             self.draw_text('Player vs Player', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
             pygame.draw.rect(screen, (255, 255, 255), button2)
-            self.draw_text('Exit', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2)
+            self.draw_text('Player vs Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2)
+            pygame.draw.rect(screen, (255, 255, 255), button3)
+            self.draw_text('Exit', button_font, (0, 0, 0), screen, displayWidth//4, (displayHeight//2) + (displayHeight//4))
 
             pygame.display.update()
 
@@ -118,17 +137,26 @@ class Chess_Board(object):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         quit()
+                elif event.type == pygame.QUIT:
+                    quit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if button1.collidepoint((mx, my)):
+                        self.buttonclick.play()
                         self.draw_board()
                         self.drawPieces()
                         pygame.display.update()
                         return None
                     elif button2.collidepoint((mx, my)):
+                        self.buttonclick.play()
+                        self.ai = True
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                        return None
+                    elif button3.collidepoint((mx, my)):
                         quit()
 
             pygame.display.update()
-
 
     def Pause_Screen(self):
         
@@ -140,8 +168,6 @@ class Chess_Board(object):
         text_rect1 = text1.get_rect(center = (displayWidth// 2, displayHeight // 8))
         self.surface.blit(text1, text_rect1)
 
-        
-        
         button  = pygame.Rect(displayWidth//4, displayHeight//4, displayWidth/2,  displayHeight/8)
         button2 = pygame.Rect(displayWidth//4, displayHeight//2, displayWidth//2, displayHeight//8)
         button3 = pygame.Rect(displayWidth//4, displayHeight - displayHeight//4, displayWidth//2, displayHeight//8)
@@ -161,14 +187,11 @@ class Chess_Board(object):
         text_rect3 = text3.get_rect(center = (displayWidth// 2, displayHeight // 2 + displayHeight//16))
         self.surface.blit(text3, text_rect3)
 
-
         text4 = "Quit Game"
         font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
         text4 = font.render(text4, 1, (0,0,0))
         text_rect4 = text4.get_rect(center = (displayWidth// 2, displayHeight - displayHeight//4 + displayHeight//16))
         self.surface.blit(text4, text_rect4)
-
-        pygame.display.update()
         while True:
 
             pygame.draw.rect(self.surface, [211,211,211], button)
@@ -182,8 +205,16 @@ class Chess_Board(object):
                 mouse_pos = pygame.mouse.get_pos()
                 if event.type == pygame.QUIT:
                     quit()
-                
-                elif event.type == pygame.KEYDOWN:
+                if button.collidepoint(mouse_pos):
+                    pygame.draw.rect(self.surface, [255,255,255], button)
+                    self.surface.blit(text2, text_rect2)
+                if button2.collidepoint(mouse_pos):
+                    pygame.draw.rect(self.surface, [255,255,255], button2)
+                    self.surface.blit(text3, text_rect3)
+                if button3.collidepoint(mouse_pos):
+                    pygame.draw.rect(self.surface, [255,255,255], button3)
+                    self.surface.blit(text4, text_rect4)
+                if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE and pygame.key.get_mods() and pygame.KMOD_CTRL:
                         self.draw_board()
                         self.drawPieces()
@@ -193,27 +224,395 @@ class Chess_Board(object):
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     
                     if button.collidepoint(mouse_pos):
-                       self.draw_board()
-                       self.drawPieces()
-                       pygame.display.update()
-                       return None
+                        self.buttonclick.play()
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                        return None
                     elif button2.collidepoint(mouse_pos):
-                       pass
+                        self.buttonclick.play()
+                        self.Options_screen()
+                        return None
                     elif button3.collidepoint(mouse_pos):
-                        quit()
-                elif button.collidepoint(mouse_pos):
-                    pygame.draw.rect(self.surface, [255,255,255], button)
-                    self.surface.blit(text2, text_rect2)
-                elif button2.collidepoint(mouse_pos):
-                    pygame.draw.rect(self.surface, [255,255,255], button2)
-                    self.surface.blit(text3, text_rect3)
-                elif button3.collidepoint(mouse_pos):
-                    pygame.draw.rect(self.surface, [255,255,255], button3)
-                    self.surface.blit(text4, text_rect4)
-                
+                        self.buttonclick.play()
+                        quit()                
                
                 pygame.display.update()
 
+    def changeStyles(self):
+        imgOptionsurface = pygame.Surface([displayWidth, displayHeight])
+        imgOptionsurface.fill((105,105,105))
+        imgOptionsurface_rect = imgOptionsurface.get_rect(center = (displayWidth//2, displayHeight//2))
+        self.surface.blit(imgOptionsurface, imgOptionsurface_rect)
+
+        button1 = pygame.Rect(displayWidth//10, displayHeight//4, displayWidth//8, displayHeight//8)                           
+        button2 = pygame.Rect(2*displayWidth//10 + displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
+        button3 = pygame.Rect(3*displayWidth//10 + 2*displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
+        button4 = pygame.Rect(4*displayWidth//10 + 3*displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
+        
+        button5 = pygame.Rect(displayWidth//10, displayHeight//1.6, displayWidth//8, displayHeight//8)
+        button6 = pygame.Rect(2*displayWidth//10 + displayWidth//8, displayHeight//1.6, displayWidth//8, displayHeight//8)
+        button7 = pygame.Rect(3*displayWidth//10 + 2*displayWidth//8, displayHeight//1.6, displayWidth//8, displayHeight//8)
+        button8 = pygame.Rect(4*displayWidth//10 + 3*displayWidth//8, displayHeight//1.6, displayWidth//8, displayHeight//8)
+
+        pygame.draw.rect(self.surface, [105,105,105], button1)
+        pygame.draw.rect(self.surface, [105,105,105], button2)
+        pygame.draw.rect(self.surface, [105,105,105], button3)
+        pygame.draw.rect(self.surface, [105,105,105], button4)
+        pygame.draw.rect(self.surface, [105,105,105], button5)
+        pygame.draw.rect(self.surface, [105,105,105], button6)
+        pygame.draw.rect(self.surface, [105,105,105], button7)
+        pygame.draw.rect(self.surface, [105,105,105], button8)
+
+        image1 = COVERIMAGES[1]
+        image2 = COVERIMAGES[2]
+        image3 = COVERIMAGES[3]
+        image4 = COVERIMAGES[4]
+        image5 = COVERIMAGES[5]
+        image6 = COVERIMAGES[6]
+        image7 = COVERIMAGES[7]
+        image8 = COVERIMAGES[8]
+        self.surface.blit(image1, button1)
+        self.surface.blit(image2, button2)
+        self.surface.blit(image3, button3)
+        self.surface.blit(image4, button4)
+        self.surface.blit(image5, button5)
+        self.surface.blit(image6, button6)
+        self.surface.blit(image7, button7)
+        self.surface.blit(image8, button8)
+
+        titlefont = pygame.font.SysFont('Helvetica', 40)
+        font = pygame.font.SysFont('Helvetica', 18)
+        text = titlefont.render("Customize Your Board", True, (0,0,0))
+        
+        ptext = titlefont.render("Piece Sets", True, (0,0,0))
+        text1 = font.render("Original Set", True, (0,0,0))
+        text2 = font.render("Gold & Silver Set", True, (0,0,0))
+        text3 = font.render("Super Mario Bros Set", True, (0,0,0))
+        text4 = font.render("Star Wars Set", True, (0,0,0))
+        
+        ctext = titlefont.render("Board Colors", True, (0,0,0))
+        text5 = font.render("White / Brown", True, (0,0,0))
+        text6 = font.render("White / Purple", True, (0,0,0))
+        text7 = font.render("White / Blue", True, (0,0,0))
+        text8 = font.render("White / Green", True, (0,0,0))
+
+        text_rect = text.get_rect(center = (displayWidth//2.16, displayHeight//20))
+        self.surface.blit(text, text_rect)
+
+        ptext_rect = text.get_rect(center =(displayWidth//4, displayHeight//6.4))
+        self.surface.blit(ptext, ptext_rect)
+
+        text1_rect = text1.get_rect(center = (displayWidth//8 + displayWidth//26.6, displayHeight//2.5))
+        self.surface.blit(text1, text1_rect)
+
+        text2_rect = text2.get_rect(center = (2*displayWidth//8 + displayWidth//80 + displayWidth//8, displayHeight//2.5))
+        self.surface.blit(text2, text2_rect)
+
+        text3_rect = text3.get_rect(center = (displayWidth//2 + displayWidth//9, displayHeight//2.5))
+        self.surface.blit(text3, text3_rect)
+
+        text4_rect = text4.get_rect(center = (displayWidth//2 + 2*displayWidth//8 + displayWidth//11, displayHeight//2.5))
+        self.surface.blit(text4, text4_rect)
+        
+        ctext_rect = ctext.get_rect(center = (displayWidth//6.8, displayHeight//2 + displayHeight//20))
+        self.surface.blit(ctext, ctext_rect)
+        
+        text5_rect = text5.get_rect(center = (displayWidth//8 + displayWidth//26.6, displayHeight//2 + 2*displayHeight//8 + displayHeight//32))
+        self.surface.blit(text5, text5_rect)
+        
+        text6_rect = text6.get_rect(center = (2*displayWidth//8 + displayWidth//80 + displayWidth//8, displayHeight//2 + 2*displayHeight//8 + displayHeight//32))
+        self.surface.blit(text6, text6_rect)
+        
+        text7_rect = text7.get_rect(center = (displayWidth//2 + displayWidth//9, displayHeight//2 + 2*displayHeight//8 + displayHeight//32))
+        self.surface.blit(text7, text7_rect)
+        
+        text8_rect = text8.get_rect(center = (displayWidth//2 + 2*displayWidth//8 + displayWidth//11, displayHeight//2 + 2*displayHeight//8 + displayHeight//32))
+        self.surface.blit(text8, text8_rect)
+        
+        print("this runs")
+        run = True
+        pos2 = (0,0)
+        
+        while run == True:
+            for event in pygame.event.get():
+                pos2 = pygame.mouse.get_pos()
+                if event.type == pygame.QUIT:
+                    quit()
+            
+            print(pos2)
+            click1 = False
+            action1 = False
+            if button1.collidepoint(pos2):
+                print('hover')
+                pygame.draw.rect(self.surface, [255,255,255], button1)
+                self.surface.blit(text1, text1_rect)
+                self.surface.blit(image1, button1)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click1 = True
+                    action1 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button1)
+                self.surface.blit(text1, text1_rect)
+                self.surface.blit(image1, button1)
+            if pygame.mouse.get_pressed()[0] == 0:
+                    click1 = False
+            if action1 == True:
+                    run = False
+            
+            click2 = False
+            action2 = False
+            if button2.collidepoint(pos2):
+                pygame.draw.rect(self.surface, [255,255,255], button2)
+                self.surface.blit(text2, text2_rect)
+                self.surface.blit(image2, button2)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click2 = True
+                    action2 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button2)
+                self.surface.blit(text2, text2_rect)
+                self.surface.blit(image2, button2)
+            if pygame.mouse.get_pressed()[0] == 0:
+                click2 = False
+            if action2 == True:
+                run = False
+
+            click3 = False
+            action3 = False
+            if button3.collidepoint(pos2):
+                pygame.draw.rect(self.surface, [255,255,255], button3)
+                self.surface.blit(text3, text3_rect)
+                self.surface.blit(image3, button3)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click3 = True
+                    action3 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button3)
+                self.surface.blit(text3, text3_rect)
+                self.surface.blit(image3, button3)
+            if pygame.mouse.get_pressed()[0] == 0:
+                click3 = False
+            if action3 == True:
+                run = False
+
+            click4 = False
+            action4 = False
+            if button4.collidepoint(pos2):
+                pygame.draw.rect(self.surface, [255,255,255], button4)
+                self.surface.blit(text4, text4_rect)
+                self.surface.blit(image4, button4)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click4 = True
+                    action4 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button4)
+                self.surface.blit(text4, text4_rect)
+                self.surface.blit(image4, button4)
+            if pygame.mouse.get_pressed()[0] == 0:
+                click4 = False
+            if action4 == True:
+                run = False
+                
+            click5 = False
+            action5 = False
+            if button5.collidepoint(pos2):
+                pygame.draw.rect(self.surface, [255,255,255], button5)
+                self.surface.blit(text5, text5_rect)
+                self.surface.blit(image5, button5)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click5 = True
+                    action5 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button5)
+                self.surface.blit(text5, text5_rect)
+                self.surface.blit(image5, button5)
+            if pygame.mouse.get_pressed()[0] == 0:
+                click5 = False
+            if action5 == True:
+                run = False
+                
+            click6 = False
+            action6 = False
+            if button6.collidepoint(pos2):
+                pygame.draw.rect(self.surface, [255,255,255], button6)
+                self.surface.blit(text6, text6_rect)
+                self.surface.blit(image6, button6)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click6 = True
+                    action6 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button6)
+                self.surface.blit(text6, text6_rect)
+                self.surface.blit(image6, button6)
+            if pygame.mouse.get_pressed()[0] == 0:
+                click6 = False
+            if action6 == True:
+                run = False
+                
+            click7 = False
+            action7 = False
+            if button7.collidepoint(pos2):
+                pygame.draw.rect(self.surface, [255,255,255], button7)
+                self.surface.blit(text7, text7_rect)
+                self.surface.blit(image7, button7)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click7 = True
+                    action7 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button7)
+                self.surface.blit(text7, text7_rect)
+                self.surface.blit(image7, button7)
+            if pygame.mouse.get_pressed()[0] == 0:
+                click7 = False
+            if action7 == True:
+                run = False
+                
+            click8 = False
+            action8 = False
+            if button8.collidepoint(pos2):
+                pygame.draw.rect(self.surface, [255,255,255], button8)
+                self.surface.blit(text8, text8_rect)
+                self.surface.blit(image8, button8)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    click8 = True
+                    action8 = True
+            else:
+                pygame.draw.rect(self.surface, [105,105,105], button8)
+                self.surface.blit(text8, text8_rect)
+                self.surface.blit(image8, button8)
+            if pygame.mouse.get_pressed()[0] == 0:
+                click8 = False
+            if action8 == True:
+                run = False
+            
+            pygame.display.update()
+        
+        if click1 == True:
+            self.buttonclick.play()
+            return 11
+        elif click2 == True:
+            self.buttonclick.play()
+            return 2
+        elif click3 == True:
+            self.buttonclick.play()
+            return 3
+        elif click4 == True:
+            self.buttonclick.play()
+            return 4
+        elif click5 == True:
+            self.buttonclick.play()
+            return 5
+        elif click6 == True:
+            self.buttonclick.play()
+            return 6
+        elif click7 == True:
+            self.buttonclick.play()
+            return 7
+        elif click8 == True:
+            self.buttonclick.play()
+            return 8
+
+    def Options_screen(self):
+        global available_moves_tf
+        global undo_moves_tf
+        resolution = (displayWidth, displayHeight)
+        screen = pygame.display.set_mode(resolution)
+        font = pygame.font.SysFont(None, displayHeight//4)
+        button_font = pygame.font.SysFont(None, displayHeight//11)
+
+        while True:
+            screen.fill((0,0,0))
+            self.draw_text('Options', font, (255, 255, 255), screen, displayWidth//20, displayHeight//22)
+            mx, my = pygame.mouse.get_pos()
+
+            option1 = pygame.Rect(displayWidth//4, displayHeight//4.5, displayWidth/2,  displayHeight/8)
+            option2 = pygame.Rect(displayWidth//4, displayHeight//2.25, displayWidth//2, displayHeight//8)
+            option3 = pygame.Rect(displayWidth//4, displayHeight//1.5, displayWidth//2, displayHeight//8)
+
+            if available_moves_tf:
+                pygame.draw.rect(screen, (255, 255, 255), option1)
+                self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4.5)
+            elif available_moves_tf is False:
+                pygame.draw.rect(screen, (255, 0, 0), option1)
+                self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4.5)
+            if undo_moves_tf:
+                pygame.draw.rect(screen, (255, 255, 255), option2)
+                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.25)
+            elif undo_moves_tf is False:
+                pygame.draw.rect(screen, (255, 0, 0), option2)
+                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.25)
+            pygame.draw.rect(screen, (255, 255, 255), option3)
+            self.draw_text('Styles', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.5)
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.Pause_Screen()
+                        return None
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if option1.collidepoint((mx, my)):
+                        self.buttonclick.play()
+                        if available_moves_tf:
+                            available_moves_tf = False
+                        elif available_moves_tf == False:
+                            available_moves_tf = True
+                        pygame.display.update()
+                    elif option2.collidepoint((mx, my)):
+                        self.buttonclick.play()
+                        if undo_moves_tf:
+                            undo_moves_tf = False
+                        elif undo_moves_tf == False:
+                            undo_moves_tf = True
+                        pygame.display.update()
+                    elif option3.collidepoint((mx, my)):
+                        self.buttonclick.play()
+                        imgpack = self.changeStyles()
+                        if imgpack == 11:
+                            pack = 'images/Originals'
+                            self.load_Images(pack)
+                        elif imgpack == 2:
+                            pack = 'images/Gold-Silver'
+                            self.load_Images(pack)
+                        elif imgpack == 3:
+                            pack = 'images/Super Mario Bros'
+                            self.load_Images(pack)
+                        elif imgpack == 4:
+                            pack = 'images/Star Wars'
+                            self.load_Images(pack)
+                        elif imgpack == 5:
+                            self.square1color = WHITE
+                            self.square2color = BROWN
+                            self.draw_board()
+                            
+                        elif imgpack == 6:
+                            self.square1color = WHITE
+                            self.square2color = PURPLE
+                            self.draw_board()
+                            
+                        elif imgpack == 7:
+                            self.square1color = WHITE
+                            self.square2color = BLUE
+                            print()
+                            print()
+                            self.draw_board()
+                           
+                        elif imgpack == 8:
+                            self.square1color = WHITE
+                            self.square2color = GREEN
+                            self.draw_board()
+                           
+                        
+                        
+                #elif option1.collidepoint((mx, my)):
+                    #pygame.draw.rect(screen, (255, 0, 0), option1)
+                    #self.draw_text('Highlight Moves: On', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
+
+            pygame.display.update()
 
     def end_screen(self, piece):
         second_surface = pygame.Surface([displayWidth//2,displayHeight//2])
@@ -225,10 +624,12 @@ class Chess_Board(object):
         font = pygame.font.SysFont('Helvetica' , 36)
         font2 = pygame.font.SysFont('Helvetica', 36)
         if piece == 6:
-            winner = "Black"
+            winner = "Black Wins!!!"
         if piece == 16:
-            winner = "White"
-        startprompt = font2.render("Game Over, " + winner + " Wins!!!", True, (255, 215, 0)) #title font
+            winner = "White Wins!!!"
+        if piece == -1:
+            winner = "Draw"
+        startprompt = font2.render("Game Over, " + winner, True, (255, 215, 0)) #title font
         startprompt_rect = startprompt.get_rect(center = (displayWidth//2  , displayHeight//4 + displayHeight//8))
         self.surface.blit(startprompt, startprompt_rect)
 
@@ -256,7 +657,7 @@ class Chess_Board(object):
                 if pygame.mouse.get_pressed()[0] == 1:   
                     click1 = True
                     action1 = True
-                    print('CLICKED')
+
             else:
                 pygame.draw.rect(self.surface, [211,211,211], button1b)
                 self.surface.blit(restart1, restart1_rect)
@@ -274,7 +675,6 @@ class Chess_Board(object):
                 if pygame.mouse.get_pressed()[0] == 1:
                     click2 = True
                     action2 = True
-                    print('CLICKED')
             else:
                 pygame.draw.rect(self.surface, [211,211,211], button2b)
                 self.surface.blit(quit1, quit1_rect)
@@ -288,17 +688,22 @@ class Chess_Board(object):
                     run = False
             pygame.display.update()
         if click2 == True:
+            self.buttonclick.play()
             quit()
         if click1 == True:
+            self.buttonclick.play()
             self.__init__()
             self.start_game()
 
 
         
-    def load_Images(self):
+    def load_Images(self, imgpack):
         pieces = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16]
         for piece in pieces:
-           IMAGES[piece] = pygame.transform.scale(pygame.image.load(os.path.join(os.path.dirname(__file__), 'images', str(piece) + '.png')).convert_alpha(), (squareSize, squareSize))
+           IMAGES[piece] = pygame.transform.scale(pygame.image.load(os.path.join(os.path.dirname(__file__), imgpack, str(piece) + '.png')).convert_alpha(), (squareSize, squareSize))
+        covers = [1,2,3,4,5,6,7,8]
+        for cover in covers:
+            COVERIMAGES[cover] = pygame.transform.scale(pygame.image.load(os.path.join(os.path.dirname(__file__), 'coverImages', str(cover) + '.png')).convert_alpha(), (squareSize, squareSize))
     
     def drawPieces(self):
         self.game.board
@@ -468,6 +873,10 @@ class Chess_Board(object):
             self.game.undo_move()
             self.prev_move -= 1
             self.user_clicks = 2
+
+            if (self.ai == True):
+                self.game.undo_move()
+                self.ai_undo = True
         # This function can be used to add more key commands later down the line.
     
     def new_game(self):
@@ -498,8 +907,9 @@ class Chess_Board(object):
             self.surface.blit(image13, button13)
             self.surface.blit(image14, button14)
             self.surface.blit(image15, button15) 
-            font = pygame.font.SysFont('Helvetica', 36)
-            text = font.render("Choose Piece to Promote to!", True, (0,0,0))
+            titlefont = pygame.font.SysFont('Helvetica', 36)
+            font = pygame.font.SysFont('Helvetica', 28)
+            text = titlefont.render("Choose Piece to Promote to!", True, (0,0,0))
             text12 = font.render("Knight", True, (0,0,0))
             text13 = font.render("Rook", True, (0,0,0))
             text14 = font.render("Bishop", True, (0,0,0))
@@ -595,12 +1005,16 @@ class Chess_Board(object):
                         run = False
                 pygame.display.update()
             if click12 == True:
+                self.buttonclick.play()
                 return 12
             if click13 == True:
+                self.buttonclick.play()
                 return 13
             if click14 == True:
+                self.buttonclick.play()
                 return 14
             if click15 == True:
+                self.buttonclick.play()
                 return 15
             
         if player == 1:
@@ -722,12 +1136,16 @@ class Chess_Board(object):
                         run = False
                 pygame.display.update()
             if click2 == True:
+                self.buttonclick.play()
                 return 2
             if click3 == True:
+                self.buttonclick.play()
                 return 3
             if click4 == True:
+                self.buttonclick.play()
                 return 4
             if click5 == True:
+                self.buttonclick.play()
                 return 5
             
 
@@ -770,6 +1188,13 @@ class Chess_Board(object):
 
     # This function starts up the game and sets all the parameters of said game.
     # Not much now but more can be added later
+     # This function starts up the game and sets all the parameters of said game.
+    # Not much now but more can be added later
+    def backgroundmusic(self):
+        pygame.mixer.music.load('Background.wav')
+        pygame.mixer.music.set_volume(.30)
+        pygame.mixer.music.play(-1)
+        
     def start_game(self):
 
         self.setUp()
@@ -778,11 +1203,18 @@ class Chess_Board(object):
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
             if self.game.player == 2 and self.ai:
-                # Random select move AI
-                time.sleep(3)
-                random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
-                select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
-                target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
+                if self.ai_mode == "random":
+                    random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
+                    select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
+                    target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
+
+                elif self.ai_mode == "alpha-beta":
+                    best_move = alpha_beta_cutoff_search(self.game)
+                    if(best_move == None):
+                        self.end_screen(16)
+                    else:
+                        target = self.game.get_piece_dict(best_move[1][0], best_move[1][1])
+                        select = self.game.get_piece_dict(best_move[0][0], best_move[0][1])
 
                 self.game.make_move(select, target)
                 self.prepare_next_turn()
@@ -842,3 +1274,69 @@ class Chess_Board(object):
                 self.clock.tick(60)
 
         quit()
+
+def alpha_beta_cutoff_search( game, d=3, cutoff_test=None, eval_fn=None):
+    """Search game to determine best action; use alpha-beta pruning.
+    This version cuts off search and uses an evaluation function."""
+    
+    cutoff_test = lambda depth: depth == 0 # You want to stop once it reaches depth d
+    eval_fn = lambda : game.advanced_evaluation()
+    best_score = -np.inf
+    best_move = None
+    depth = d
+    
+    for x in game.actions():
+        from_square = game.get_piece_dict(x[0][0], x[0][1])
+        to_square = game.get_piece_dict(x[1][0], x[1][1])
+        game.make_move(from_square, to_square)
+        value = min_value(-np.inf, np.inf, depth - 1, game, eval_fn)
+        game.undo_move()
+        if(value >= best_score):
+            best_move = x
+            best_score = value
+            print(best_score)
+            print(best_move)
+    if (game.player == 1):
+        game.player = 2
+    return best_move
+
+def min_value(alpha, beta, depth, game, eval_fn):
+
+        if depth == 0:
+            #print(eval_fn())
+            return -eval_fn()
+        best_min_score = np.inf
+        if (game.player == 2):
+            game.player = 1
+        for move in game.actions():
+            from_square = game.get_piece_dict(move[0][0], move[0][1])
+            to_square = game.get_piece_dict(move[1][0], move[1][1])
+            game.make_move(from_square, to_square)
+            best_min_score = min(best_min_score, max_value(alpha, beta, depth - 1, game, eval_fn))
+            game.undo_move()
+            beta = min(beta, best_min_score)
+            if (beta <= alpha):
+                return best_min_score
+        
+
+
+        return best_min_score
+
+
+def max_value(alpha, beta, depth, game, eval_fn):
+        if depth == 0:
+            return -eval_fn()
+        best_max_score = -np.inf
+        if(game.player == 1):
+            game.player = 2
+        for move in game.actions():
+            from_square = game.get_piece_dict(move[0][0], move[0][1])
+            to_square = game.get_piece_dict(move[1][0], move[1][1])
+            game.make_move(from_square, to_square)
+            best_max_score = max(best_max_score, min_value(alpha, beta, depth - 1, game, eval_fn))
+            game.undo_move()
+            alpha = max(alpha, best_max_score)
+            #print(alpha)
+            if (beta >= alpha):
+                return best_max_score
+        return best_max_score

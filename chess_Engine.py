@@ -2,8 +2,7 @@
 #Essentially this will be where pygame is programmed and the other file will be where the chess 
 #functions will be called.
 
-import pygame, sys, time, math, copy, chess, os
-from pprint import pprint # TODO: remove this on final
+import pygame, sys, time, math, copy, chess, os, random
 
 #These are varoables representing colors Brown and White for pygame applications. 
 Brown = (139, 69, 19)
@@ -35,8 +34,9 @@ class Chess_Board(object):
         self.target = { 'piece': -1, 'y': -1, 'x': -1 }
         self.prev_move = 0
 
+        self.ai = False
+
         self.valid_moves = self.game.get_valid_moves()
-        print(self.valid_moves)
     
     def setUp(self):
         #imports all available pygame modules
@@ -320,8 +320,6 @@ class Chess_Board(object):
         select_y = math.floor(select_y / squareSize)
         piece = self.game.board[select_y][select_x]
 
-        print( (select_y, select_x) )
-
         # Checking if the user is just selecting a piece to move
         if self.user_clicks == 0:
             
@@ -332,15 +330,11 @@ class Chess_Board(object):
                     self.select['y'] = select_y
                     self.select['x'] = select_x
                     self.user_clicks = 1
-                    #new stuff
-                    
-                    
-
 
         # Checks when user has already selected a piece
         elif self.user_clicks == 1:
             
-            #if the player selects the tile with the selected piece let it go.
+            # if the player selects the tile with the selected piece let it go.
             if (select_x == self.select['x'] and select_y == self.select['y']):
                 self.game.board[select_y][select_x] = self.select['piece']
                 self.select['piece'] = -1
@@ -350,17 +344,72 @@ class Chess_Board(object):
                 self.draw_board()
                 self.drawPieces()
                 pygame.display.update()
-            
+
+            # if player has rook selected then selects a king, this is a castling move input
+            if ((self.game.player == 1 and ((self.select['piece'] == 3 and piece == 6) or (self.select['piece'] == 6 and piece == 3))) or
+                self.game.player == 2 and ((self.select['piece'] == 13 and piece == 16) or (self.select['piece'] == 16 and piece == 13))):
+
+                move = ( (self.select['y'], self.select['x']),
+                         (select_y, select_x) )
+
+                if move in self.valid_moves:
+                    self.target['piece'] = piece
+                    self.target['y'] = select_y
+                    self.target['x'] = select_x
+
+                    if self.select['piece'] in (3, 13):
+                        rook = self.select
+                        king = {'piece': piece, 'y': select_y, 'x': select_x}
+                    elif self.select['piece'] in (6, 16):
+                        king = self.select
+                        rook = {'piece': piece, 'y': select_y, 'x': select_x}
+
+                    # Update before movement
+                    self.update_castling_state(rook)
+                    self.update_castling_state(king)
+
+                    # Queenside castling
+                    if rook['x'] < king['x']:
+                        # Move rook
+                        self.game.make_move( rook,
+                                             {'piece': rook['piece'],
+                                              'y': rook['y'],
+                                              'x': rook['x'] + 3} )
+                        
+                        # Move king
+                        self.game.make_move( king,
+                                             {'piece': king['piece'],
+                                              'y': king['y'],
+                                              'x': king['x'] - 2})
+
+                    # Kingside castling
+                    elif rook['x'] > king['x']:
+                        # Move rook
+                        self.game.make_move( rook,
+                                             {'piece': rook['piece'],
+                                              'y': rook['y'],
+                                              'x': rook['x'] - 2} )
+                        
+                        # Move king
+                        self.game.make_move( king,
+                                             {'piece': king['piece'],
+                                              'y': king['y'],
+                                              'x': king['x'] + 2})
+
+                    print(self.game.track_castling)
+                    self.user_clicks = 2                    
+
             # if player still selects their piece, set that piece as new selected
             elif ((self.game.player == 1 and 1 <= piece <= 6) or 
                 (self.game.player == 2 and 11 <= piece <= 16)):
-                    self.select['piece'] = piece
-                    self.select['y'] = select_y
-                    self.select['x'] = select_x
-                    self.user_clicks = 1
-                    self.draw_board()
-                    self.drawPieces()
-                    pygame.display.update()
+                self.select['piece'] = piece
+                self.select['y'] = select_y
+                self.select['x'] = select_x
+                self.user_clicks = 1
+                self.draw_board()
+                self.drawPieces()
+                pygame.display.update()
+
             else:
                 self.target['piece'] = piece
                 self.target['y'] = select_y
@@ -370,18 +419,28 @@ class Chess_Board(object):
                          (select_y, select_x) )
 
                 # check if select-target combo is in available moves
-                """ if self.game.is_valid_move( self.select, self.target ):
-                    self.game.make_move( self.select, self.target )
-                    self.user_clicks = 2 """
-                
                 if move in self.valid_moves:
                     self.game.make_move( self.select, self.target )
-                    print("Black King Moved!")
+                    self.update_castling_state(self.select)
                     self.prev_move += 1
                     self.user_clicks = 2
-                
 
-        #This event tracks the position where the user clicks the mouse
+    # Keeps track rooks and kings for castling
+    def update_castling_state(self, selected):
+        if selected['piece'] == 13 and selected['y'] == 0 and selected['x'] == 0:
+            self.game.track_castling['TopL'] = True
+        elif selected['piece'] == 13 and selected['y'] == 0 and selected['x'] == 7:
+            self.game.track_castling['TopR'] = True
+        elif selected['piece'] == 3 and selected['y'] == 7 and selected['x'] == 0:
+            self.game.track_castling['BotL'] = True
+        elif selected['piece'] == 3 and selected['y'] == 7 and selected['x'] == 7:
+            self.game.track_castling['BotR'] = True
+        elif selected['piece'] == 6 and selected['y'] == 7 and selected['x'] == 4:
+            self.game.track_castling['King1'] = True
+        elif selected['piece'] == 16 and selected['y'] == 0 and selected['x'] == 4:
+            self.game.track_castling['King2'] = True
+
+    #This event tracks the position where the user clicks the mouse
     def handle_mouseup(self, event):
         pass
         #This can be used to get the position where the user stopped clicking the mouse
@@ -405,8 +464,8 @@ class Chess_Board(object):
 
         elif event.key == pygame.K_z and pygame.key.get_mods() and pygame.KMOD_CTRL and self.prev_move > 0:
             # CTRL + Z undos the move
-            # TODO: consider castling
-            self.game.undo_move( )
+            #self.game.track_castling = copy.deepcopy(self.game.prev_moves[-1][2])
+            self.game.undo_move()
             self.prev_move -= 1
             self.user_clicks = 2
         # This function can be used to add more key commands later down the line.
@@ -687,95 +746,99 @@ class Chess_Board(object):
 
         return False
 
+    def prepare_next_turn(self):
+        if (self.game.player == 1):
+            self.game.player = 2
+        elif (self.game.player == 2):
+            self.game.player = 1
+
+        self.select = { 'piece': -1, 'y': -1, 'x': -1 }
+        self.target = { 'piece': -1, 'y': -1, 'x': -1 }
+        self.valid_moves.clear()
+
+        self.draw_board()
+        self.drawPieces()
+        pygame.display.update()
+        moves = self.game.get_valid_moves()
+        valid_moves = self.game.further_validation(moves)
+        if len(valid_moves) == 0 and self.game.check():
+            if (self.game.player == 1):
+                self.end_screen(6)
+            else:
+                self.end_screen(16)
+        self.valid_moves = moves
+
     # This function starts up the game and sets all the parameters of said game.
     # Not much now but more can be added later
     def start_game(self):
 
         self.setUp()
         self.main_Menu()
-       
-        
-        self.ai = None
         
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quit()
-                elif event.type == pygame.KEYDOWN:
-                    self.key_pressed_down_event(event)
-                elif event.type == pygame.KEYUP:
-                    self.key_let_go_event(event)
+            if self.game.player == 2 and self.ai:
+                # Random select move AI
+                time.sleep(3)
+                random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
+                select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
+                target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
 
-                elif pygame.mouse.get_pressed()[0]:
-                    self.handle_mousedown(event)
-                else:
-                    pass
-            
-            if(self.user_clicks == 1):
-                #code to generate possible moves and to animate moving the pawn
-                select_x, select_y = pygame.mouse.get_pos()
-                self.draw_board()
-                available_moves = self.valid_moves
-                selected_moves = []
-                for x in available_moves:
-                    if(x[0][0] == self.select['y'] and x[0][1] == self.select['x']):
-                        selected_moves.append(x)
-                for x in selected_moves:
-                    #change this to color in the board
-                    if(self.game.player == 1):
-                        pygame.draw.rect(self.surface, RED, pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
-                    elif(self.game.player == 2):
-                        pygame.draw.rect(self.surface, (255,255,0), pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+                self.game.make_move(select, target)
+                self.prepare_next_turn()
 
-                   
-                self.drawPieces()
-                self.surface.blit(IMAGES[self.select['piece']] , (select_x-50, select_y-50))
-                pygame.display.update()
-                self.clock.tick(60)
-        
-            # if user clicks is 2 then we know some sort of board state occured. Now we have to update the board.
-            if (self.user_clicks == 2):
-
-                #Checks if the player can validly make a pawn promotion
-                if(self.isPawnPromotion(self.target['y'], self.target['x'])):
-                    #update the board to show that the pawn moved to edge of board
-                    self.draw_board()
-                    self.drawPieces()
-                    pygame.display.update()
-                    #set pawn to player's selected piece
-                    self.game.board[ self.target['y'] ][ self.target['x'] ] = self.pawnPromotion(self.game.player)
-                    #this is to make pygame wait for user input.
-                    evemt = pygame.event.wait()
-                    pygame.display.update()
-
-                #now we need to reset everything.
-                if (self.game.player == 1):
-                    self.game.player = 2
-                elif (self.game.player == 2):
-                    self.game.player = 1
-
-                self.user_clicks = 0
-                self.select = { 'piece': -1, 'y': -1, 'x': -1 }
-                self.target = { 'y': -1, 'x': -1 }
-                self.valid_moves.clear()
-
-                self.draw_board()
-                self.drawPieces()
-                pygame.display.update()
-                moves = self.game.get_valid_moves()
-                valid_moves = self.game.further_validation(moves)
-                if len(valid_moves) == 0 and self.game.check():
-                    if (self.game.player == 1):
-                        self.end_screen(6)
+            else:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        quit()
+                    elif event.type == pygame.KEYDOWN:
+                        self.key_pressed_down_event(event)
+                    elif event.type == pygame.KEYUP:
+                        self.key_let_go_event(event)
+                    elif pygame.mouse.get_pressed()[0]:
+                        self.handle_mousedown(event)
                     else:
-                        self.end_screen(16)
-                self.valid_moves = moves
-                #pprint(self.valid_moves)
-                print("Black King Position, Row: " + str(self.game._black_king[0]) + " Column: " + str(self.game._black_king[1]) )
-                print(str(len(valid_moves)))
-                # print(self.game.board) debug purposes                 
+                        pass
+
+                if(self.user_clicks == 1):
+                    #code to generate possible moves and to animate moving the pawn
+                    select_x, select_y = pygame.mouse.get_pos()
+                    self.draw_board()
+                    available_moves = self.valid_moves
+                    selected_moves = []
+                    for x in available_moves:
+                        if(x[0][0] == self.select['y'] and x[0][1] == self.select['x']):
+                            selected_moves.append(x)
+                    for x in selected_moves:
+                        #change this to color in the board
+                        if(self.game.player == 1):
+                            pygame.draw.rect(self.surface, RED, pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+                        elif(self.game.player == 2):
+                            pygame.draw.rect(self.surface, (255,255,0), pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+
+                    self.drawPieces()
+                    self.surface.blit(IMAGES[self.select['piece']] , (select_x-50, select_y-50))
+                    pygame.display.update()
+                    self.clock.tick(60)
+            
+                # if user clicks is 2 then we know some sort of board state occured. Now we have to update the board.
+                if (self.user_clicks == 2):
+
+                    #Checks if the player can validly make a pawn promotion
+                    if(self.isPawnPromotion(self.target['y'], self.target['x'])):
+                        #update the board to show that the pawn moved to edge of board
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                        #set pawn to player's selected piece
+                        self.game.board[ self.target['y'] ][ self.target['x'] ] = self.pawnPromotion(self.game.player)
+                        #this is to make pygame wait for user input.
+                        evemt = pygame.event.wait()
+                        pygame.display.update()
+
+                    self.prepare_next_turn()
+                    self.user_clicks = 0
     
-            self.clock.tick(60)
+                self.clock.tick(60)
 
         quit()

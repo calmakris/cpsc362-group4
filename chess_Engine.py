@@ -979,6 +979,7 @@ class Chess_Board(object):
             if (self.ai == True):
                 self.game.undo_move()
                 self.ai_undo = True
+
         # This function can be used to add more key commands later down the line.
     
     def new_game(self):
@@ -1337,6 +1338,39 @@ class Chess_Board(object):
                         self.handle_mousedown(event)
                     else:
                         pass
+
+                    if event.type == pygame.MOUSEMOTION:
+                        mouse_pos2 = event.pos
+                        if(undo_button1.collidepoint(mouse_pos2)):
+                            pygame.draw.rect(screen, hover_col, undo_button1)
+                            pygame.display.update()    
+
+                    if (len(self.game.prev_moves) != 0):
+                        if (event.type == pygame.MOUSEBUTTONDOWN):
+                            mouse_pos1 = event.pos  # gets mouse position
+                            # checks if mouse position is over the button
+                            if (undo_button1.collidepoint(mouse_pos1)):
+                                #switch to player
+                                self.user_clicks = 2
+                                self.prev_move -= 1
+                                if (self.game.player == 1):
+                                    # undo move
+                                    # self.game.player = 2
+                                    self.game.undo_move()
+                                    
+                                elif(self.game.player ==2):
+                                    # self.game.player = 1
+                                    self.game.undo_move()
+
+                                if (self.ai == True):
+                                    self.game.undo_move()
+                                    self.ai_undo = True
+                                    
+                    pygame.draw.rect(screen, [0,238,238], undo_button1)  # draw button
+                    text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
+                    text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
+                    screen.blit(text_surface_object, text_rect1)
+                    pygame.display.update()
 
                 if(self.user_clicks == 1):
                     #code to generate possible moves and to animate moving the pawn

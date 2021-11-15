@@ -13,6 +13,20 @@ PURPLE = (106, 90, 205)
 BLUE = (28, 155, 188)
 GREEN = (60, 179, 113)
 RED = (255,0,0)
+clr_dict = { 			#change here
+    "Red" : (255, 0, 0),
+    "Lime" : (0, 255, 0),
+    "Blue" : (0, 0, 255),
+    "Yellow" : (255, 255, 0),
+    "Cyan" : (0, 255, 255),
+    "Magenta" : (255, 0, 255),
+    "Green" : (0, 128, 0),
+    "Purple" : (128, 0, 128),
+    "Teal" : (0, 128, 128),
+    "Navy" : (0, 0, 128),
+}
+Color2 = clr_dict["Yellow"]
+Color1 = clr_dict["Red"]
 displayWidth = 800
 displayHeight = 800
 squareSize = displayHeight//8
@@ -21,6 +35,14 @@ IMAGES = {}
 pygame.mixer.pre_init(44100, -16, 2, 2048)
 pygame.init()
 pack = 'images/Originals'
+# start of declarations
+hover_col = (75, 225, 255)
+undo_button1 = pygame.Rect(775, 385, 25, 25) 
+pos1 = pygame.mouse.get_pos()
+
+screen = pygame.display.set_mode((displayWidth,displayHeight))
+undo_font = pygame.font.SysFont(None, 10)
+# end of declarations                  
 
 #This calls pygame to exit the program.
 def quit():
@@ -154,8 +176,61 @@ class Chess_Board(object):
                         pygame.display.update()
                         return None
                     elif button3.collidepoint((mx, my)):
+                        self.buttonclick.play()
                         quit()
 
+            pygame.display.update()
+
+    def Ai_Menu(self):
+        
+        resolution = (displayWidth, displayHeight)
+        screen = pygame.display.set_mode(resolution)
+        font = pygame.font.SysFont(None, displayHeight//8)
+        button_font = pygame.font.SysFont(None, 45)
+
+        clock = pygame.time.Clock()
+        while True:
+            screen.fill((0,0,0))
+
+            self.draw_text('Please Choose Your Ai:', font, (255, 255, 255), screen, displayWidth//20, displayHeight//20)
+
+            mx, my = pygame.mouse.get_pos()
+
+            button1 = pygame.Rect(displayWidth//4, displayHeight//4, displayWidth/2,  displayHeight/8)
+            button2 = pygame.Rect(displayWidth//4, displayHeight//2, displayWidth//2, displayHeight//8)
+            button3 = pygame.Rect(displayWidth//4, (displayHeight//2) + (displayHeight//4), displayWidth//2, displayHeight//8)
+
+            pygame.draw.rect(screen, (255, 255, 255), button1)
+            self.draw_text('Alpha Beta Pruning Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
+            pygame.draw.rect(screen, (255, 255, 255), button2)
+            self.draw_text('Random Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2)
+            pygame.draw.rect(screen, (255, 255, 255), button3)
+            self.draw_text('Exit', button_font, (0, 0, 0), screen, displayWidth//4, (displayHeight//2) + (displayHeight//4))
+
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        quit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if button1.collidepoint((mx, my)):
+                        self.ai_mode = "alpha-beta"
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                        return None
+                    elif button2.collidepoint((mx, my)):
+                        self.ai_mode = "random"
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                        return None
+                    elif button3.collidepoint((mx, my)):
+                        quit()
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                
             pygame.display.update()
 
     def Pause_Screen(self):
@@ -245,10 +320,10 @@ class Chess_Board(object):
         imgOptionsurface_rect = imgOptionsurface.get_rect(center = (displayWidth//2, displayHeight//2))
         self.surface.blit(imgOptionsurface, imgOptionsurface_rect)
 
-        button1 = pygame.Rect(displayWidth//10, displayHeight//4, displayWidth//8, displayHeight//8)                           
-        button2 = pygame.Rect(2*displayWidth//10 + displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
-        button3 = pygame.Rect(3*displayWidth//10 + 2*displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
-        button4 = pygame.Rect(4*displayWidth//10 + 3*displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
+        button1 = pygame.Rect(2*displayWidth//10, displayHeight//4, displayWidth//8, displayHeight//8 )
+        button2 = pygame.Rect(displayWidth//2 + displayWidth//8 + displayWidth//20,displayHeight//4,displayWidth//8, displayHeight//8 )
+        button3 = pygame.Rect(2*displayWidth//10, displayHeight//2,displayWidth//8, displayHeight//8)
+        button4 = pygame.Rect(displayWidth//2 + displayWidth//8 + displayWidth//20, displayHeight//2,displayWidth//8, displayHeight//8 )
         
         button5 = pygame.Rect(displayWidth//10, displayHeight//1.6, displayWidth//8, displayHeight//8)
         button6 = pygame.Rect(2*displayWidth//10 + displayWidth//8, displayHeight//1.6, displayWidth//8, displayHeight//8)
@@ -491,31 +566,33 @@ class Chess_Board(object):
         if click1 == True:
             self.buttonclick.play()
             return 11
-        elif click2 == True:
+        if click2 == True:
             self.buttonclick.play()
             return 2
-        elif click3 == True:
+        if click3 == True:
             self.buttonclick.play()
             return 3
-        elif click4 == True:
+        if click4 == True:
             self.buttonclick.play()
             return 4
-        elif click5 == True:
+        if click5 == True:
             self.buttonclick.play()
             return 5
-        elif click6 == True:
+        if click6 == True:
             self.buttonclick.play()
             return 6
-        elif click7 == True:
+        if click7 == True:
             self.buttonclick.play()
             return 7
-        elif click8 == True:
+        if click8 == True:
             self.buttonclick.play()
             return 8
 
     def Options_screen(self):
         global available_moves_tf
         global undo_moves_tf
+        global Color1
+        global Color2
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
         font = pygame.font.SysFont(None, displayHeight//4)
@@ -526,9 +603,11 @@ class Chess_Board(object):
             self.draw_text('Options', font, (255, 255, 255), screen, displayWidth//20, displayHeight//22)
             mx, my = pygame.mouse.get_pos()
 
-            option1 = pygame.Rect(displayWidth//4, displayHeight//4.5, displayWidth/2,  displayHeight/8)
-            option2 = pygame.Rect(displayWidth//4, displayHeight//2.25, displayWidth//2, displayHeight//8)
-            option3 = pygame.Rect(displayWidth//4, displayHeight//1.5, displayWidth//2, displayHeight//8)
+            option1 = pygame.Rect(displayWidth//4, displayHeight//4.5, displayWidth//2,  displayHeight//10)
+            option2 = pygame.Rect(displayWidth//4, displayHeight//2.25, displayWidth//2, displayHeight//10)
+            option3 = pygame.Rect(displayWidth//4, displayHeight//1.6, displayWidth//2, displayHeight//10)
+            option4 = pygame.Rect(displayWidth//4, displayHeight//1.30, displayWidth//2, displayHeight//10)
+            option5 = pygame.Rect(displayWidth//4, displayHeight//1.15, displayWidth//2, displayHeight//10)
 
             if available_moves_tf:
                 pygame.draw.rect(screen, (255, 255, 255), option1)
@@ -543,8 +622,13 @@ class Chess_Board(object):
                 pygame.draw.rect(screen, (255, 0, 0), option2)
                 self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.25)
             pygame.draw.rect(screen, (255, 255, 255), option3)
-            self.draw_text('Styles', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.5)
+            self.draw_text('Styles', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.6)
 
+            pygame.draw.rect(screen, Color1, option4)
+            self.draw_text('P1 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.30)
+            pygame.draw.rect(screen, Color2, option5)
+            self.draw_text('P2 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.15)
+            
             pygame.display.update()
 
             for event in pygame.event.get():
@@ -605,12 +689,30 @@ class Chess_Board(object):
                             self.square1color = WHITE
                             self.square2color = GREEN
                             self.draw_board()
-                           
-                        
-                        
-                #elif option1.collidepoint((mx, my)):
-                    #pygame.draw.rect(screen, (255, 0, 0), option1)
-                    #self.draw_text('Highlight Moves: On', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
+    
+                    elif option4.collidepoint((mx, my)):
+                        if Color1 == clr_dict["Red"]:
+                            Color1 = clr_dict["Blue"]
+                        elif Color1 == clr_dict["Blue"]:
+                            Color1 = clr_dict["Lime"]
+                        elif Color1 == clr_dict["Lime"]:
+                            Color1 = clr_dict["Cyan"]
+                        elif Color1 == clr_dict["Cyan"]:
+                            Color1 = clr_dict["Magenta"]
+                        elif Color1 == clr_dict["Magenta"]:
+                            Color1 = clr_dict["Red"] 
+                        pygame.display.update()
+                    elif option5.collidepoint((mx, my)):
+                        if Color2 == clr_dict["Yellow"]:
+                            Color2 = clr_dict["Purple"]
+                        elif Color2 == clr_dict["Purple"]:
+                            Color2 = clr_dict["Green"]
+                        elif Color2 == clr_dict["Green"]:
+                            Color2 = clr_dict["Navy"]
+                        elif Color2 == clr_dict["Navy"]:
+                            Color2 = clr_dict["Teal"]
+                        elif Color2 == clr_dict["Teal"]:
+                            Color2 = clr_dict["Yellow"]
 
             pygame.display.update()
 
@@ -801,7 +903,7 @@ class Chess_Board(object):
                                               'y': king['y'],
                                               'x': king['x'] + 2})
 
-                    print(self.game.track_castling)
+                    self.movesound.play()
                     self.user_clicks = 2                    
 
             # if player still selects their piece, set that piece as new selected
@@ -826,6 +928,7 @@ class Chess_Board(object):
                 # check if select-target combo is in available moves
                 if move in self.valid_moves:
                     self.game.make_move( self.select, self.target )
+                    self.movesound.play()
                     self.update_castling_state(self.select)
                     self.prev_move += 1
                     self.user_clicks = 2
@@ -869,7 +972,6 @@ class Chess_Board(object):
 
         elif event.key == pygame.K_z and pygame.key.get_mods() and pygame.KMOD_CTRL and self.prev_move > 0:
             # CTRL + Z undos the move
-            #self.game.track_castling = copy.deepcopy(self.game.prev_moves[-1][2])
             self.game.undo_move()
             self.prev_move -= 1
             self.user_clicks = 2
@@ -1199,6 +1301,8 @@ class Chess_Board(object):
 
         self.setUp()
         self.main_Menu()
+        if self.ai == True:
+            self.Ai_Menu()
         
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
@@ -1207,6 +1311,7 @@ class Chess_Board(object):
                     random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
                     select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
                     target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
+                    time.sleep(3) # slow it down
 
                 elif self.ai_mode == "alpha-beta":
                     best_move = alpha_beta_cutoff_search(self.game)
@@ -1217,6 +1322,7 @@ class Chess_Board(object):
                         select = self.game.get_piece_dict(best_move[0][0], best_move[0][1])
 
                 self.game.make_move(select, target)
+                self.movesound.play()
                 self.prepare_next_turn()
 
             else:
@@ -1244,9 +1350,9 @@ class Chess_Board(object):
                     for x in selected_moves:
                         #change this to color in the board
                         if(self.game.player == 1):
-                            pygame.draw.rect(self.surface, RED, pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+                            pygame.draw.rect(self.surface, Color1, pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
                         elif(self.game.player == 2):
-                            pygame.draw.rect(self.surface, (255,255,0), pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
+                            pygame.draw.rect(self.surface, Color2, pygame.Rect((x[1][1] * squareSize) , (x[1][0]* squareSize) , squareSize  , squareSize ))
 
                     self.drawPieces()
                     self.surface.blit(IMAGES[self.select['piece']] , (select_x-50, select_y-50))
@@ -1337,6 +1443,6 @@ def max_value(alpha, beta, depth, game, eval_fn):
             game.undo_move()
             alpha = max(alpha, best_max_score)
             #print(alpha)
-            if (beta >= alpha):
+            if (beta <= alpha):
                 return best_max_score
         return best_max_score

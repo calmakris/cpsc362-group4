@@ -320,10 +320,10 @@ class Chess_Board(object):
         imgOptionsurface_rect = imgOptionsurface.get_rect(center = (displayWidth//2, displayHeight//2))
         self.surface.blit(imgOptionsurface, imgOptionsurface_rect)
 
-        button1 = pygame.Rect(2*displayWidth//10, displayHeight//4, displayWidth//8, displayHeight//8 )
-        button2 = pygame.Rect(displayWidth//2 + displayWidth//8 + displayWidth//20,displayHeight//4,displayWidth//8, displayHeight//8 )
-        button3 = pygame.Rect(2*displayWidth//10, displayHeight//2,displayWidth//8, displayHeight//8)
-        button4 = pygame.Rect(displayWidth//2 + displayWidth//8 + displayWidth//20, displayHeight//2,displayWidth//8, displayHeight//8 )
+        button1 = pygame.Rect(displayWidth//10, displayHeight//4, displayWidth//8, displayHeight//8)                           
+        button2 = pygame.Rect(2*displayWidth//10 + displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
+        button3 = pygame.Rect(3*displayWidth//10 + 2*displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
+        button4 = pygame.Rect(4*displayWidth//10 + 3*displayWidth//8, displayHeight//4, displayWidth//8, displayHeight//8)
         
         button5 = pygame.Rect(displayWidth//10, displayHeight//1.6, displayWidth//8, displayHeight//8)
         button6 = pygame.Rect(2*displayWidth//10 + displayWidth//8, displayHeight//1.6, displayWidth//8, displayHeight//8)

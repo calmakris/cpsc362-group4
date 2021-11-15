@@ -1360,6 +1360,7 @@ class Chess_Board(object):
                                 #switch to player
                                 self.user_clicks = 2
                                 self.prev_move -= 1
+
                                 if self.game.player == 1:
                                     self.game.undo_move()
                                     
@@ -1368,6 +1369,7 @@ class Chess_Board(object):
 
                                 if self.ai == True:
                                     self.game.undo_move()
+                                    self.prev_move -= 1
                                     self.ai_undo = True
                                     
                     pygame.draw.rect(screen, [0,238,238], undo_button1)  # draw button

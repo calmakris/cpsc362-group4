@@ -853,7 +853,7 @@ class Chess_Board(object):
                 pygame.display.update()
 
             # if player has rook selected then selects a king, this is a castling move input
-            if ((self.game.player == 1 and ((self.select['piece'] == 3 and piece == 6) or (self.select['piece'] == 6 and piece == 3))) or
+            elif ((self.game.player == 1 and ((self.select['piece'] == 3 and piece == 6) or (self.select['piece'] == 6 and piece == 3))) or
                 self.game.player == 2 and ((self.select['piece'] == 13 and piece == 16) or (self.select['piece'] == 16 and piece == 13))):
 
                 move = ( (self.select['y'], self.select['x']),

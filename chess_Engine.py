@@ -978,6 +978,7 @@ class Chess_Board(object):
 
             if (self.ai == True):
                 self.game.undo_move()
+                self.prev_move -= 1
                 self.ai_undo = True
 
         # This function can be used to add more key commands later down the line.
@@ -1280,6 +1281,12 @@ class Chess_Board(object):
         self.draw_board()
         self.drawPieces()
         pygame.display.update()
+
+        # Make sure undo vs AI switches back to player's turn
+        if self.ai_undo == True:
+            self.game.player = 1
+            self.ai_undo = False
+
         moves = self.game.get_valid_moves()
         valid_moves = self.game.further_validation(moves)
         if len(valid_moves) == 0 and self.game.check():
@@ -1353,16 +1360,13 @@ class Chess_Board(object):
                                 #switch to player
                                 self.user_clicks = 2
                                 self.prev_move -= 1
-                                if (self.game.player == 1):
-                                    # undo move
-                                    # self.game.player = 2
+                                if self.game.player == 1:
                                     self.game.undo_move()
                                     
-                                elif(self.game.player ==2):
-                                    # self.game.player = 1
+                                elif self.game.player == 2:
                                     self.game.undo_move()
 
-                                if (self.ai == True):
+                                if self.ai == True:
                                     self.game.undo_move()
                                     self.ai_undo = True
                                     

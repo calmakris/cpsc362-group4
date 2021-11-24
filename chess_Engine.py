@@ -130,15 +130,15 @@ class Chess_Board(object):
         
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont(None, displayHeight//4)
-        button_font = pygame.font.SysFont(None, displayHeight//11)
+        font = pygame.font.SysFont(None, displayHeight//6)
+        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
         self.backgroundmusic()
 
         clock = pygame.time.Clock()
         while True:
             screen.fill((0,0,0))
 
-            self.draw_text('Main Menu', font, (255, 255, 255), screen, displayWidth//20, displayHeight//20)
+            self.draw_text('Main Menu', font, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
 
             mx, my = pygame.mouse.get_pos()
 
@@ -146,11 +146,11 @@ class Chess_Board(object):
             button2 = pygame.Rect(displayWidth//4, displayHeight//2, displayWidth//2, displayHeight//8)
             button3 = pygame.Rect(displayWidth//4, (displayHeight//2) + (displayHeight//4), displayWidth//2, displayHeight//8)
 
-            pygame.draw.rect(screen, (255, 255, 255), button1)
+            pygame.draw.rect(screen, (211,211,211), button1)
             self.draw_text('Player vs Player', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
-            pygame.draw.rect(screen, (255, 255, 255), button2)
+            pygame.draw.rect(screen, (211, 211, 211), button2)
             self.draw_text('Player vs Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2)
-            pygame.draw.rect(screen, (255, 255, 255), button3)
+            pygame.draw.rect(screen, (211, 211, 211), button3)
             self.draw_text('Exit', button_font, (0, 0, 0), screen, displayWidth//4, (displayHeight//2) + (displayHeight//4))
 
             pygame.display.update()
@@ -185,14 +185,14 @@ class Chess_Board(object):
         
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont(None, displayHeight//8)
-        button_font = pygame.font.SysFont(None, 45)
+        font = pygame.font.SysFont(None, displayHeight//6)
+        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
 
         clock = pygame.time.Clock()
         while True:
             screen.fill((0,0,0))
 
-            self.draw_text('Please Choose Your Ai:', font, (255, 255, 255), screen, displayWidth//20, displayHeight//20)
+            self.draw_text('Choose Your Ai', font, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
 
             mx, my = pygame.mouse.get_pos()
 
@@ -200,11 +200,11 @@ class Chess_Board(object):
             button2 = pygame.Rect(displayWidth//4, displayHeight//2, displayWidth//2, displayHeight//8)
             button3 = pygame.Rect(displayWidth//4, (displayHeight//2) + (displayHeight//4), displayWidth//2, displayHeight//8)
 
-            pygame.draw.rect(screen, (255, 255, 255), button1)
+            pygame.draw.rect(screen, (211, 211, 211), button1)
             self.draw_text('Alpha Beta Pruning Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
-            pygame.draw.rect(screen, (255, 255, 255), button2)
+            pygame.draw.rect(screen, (211, 211, 211), button2)
             self.draw_text('Random Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2)
-            pygame.draw.rect(screen, (255, 255, 255), button3)
+            pygame.draw.rect(screen, (211, 211, 211), button3)
             self.draw_text('Exit', button_font, (0, 0, 0), screen, displayWidth//4, (displayHeight//2) + (displayHeight//4))
 
             pygame.display.update()
@@ -235,10 +235,12 @@ class Chess_Board(object):
 
     def Pause_Screen(self):
         
-        self.surface.fill((0,0,105))
+        self.surface.fill((0,0,0))
         
-        text1 = "Pause Menu:"
-        font = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        text1 = "Paused"
+        #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//6)
+        #button_font = pygame.font.SysFont(None, displayHeight//18, 1)
         text1 = font.render(text1, 1, (255, 215, 0))
         text_rect1 = text1.get_rect(center = (displayWidth// 2, displayHeight // 8))
         self.surface.blit(text1, text_rect1)
@@ -251,19 +253,22 @@ class Chess_Board(object):
         pygame.draw.rect(self.surface, [211,211,211], button3)
 
         text2 = "Continue"
-        font = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text2 = font.render(text2, 1, (0,0,0))
         text_rect2 = text2.get_rect(center = (displayWidth// 2, displayHeight // 4 + displayHeight//16))
         self.surface.blit(text2, text_rect2)
 
         text3 = "Options"
-        font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text3 = font.render(text3, 1, (0,0,0))
         text_rect3 = text3.get_rect(center = (displayWidth// 2, displayHeight // 2 + displayHeight//16))
         self.surface.blit(text3, text_rect3)
 
         text4 = "Quit Game"
-        font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text4 = font.render(text4, 1, (0,0,0))
         text_rect4 = text4.get_rect(center = (displayWidth// 2, displayHeight - displayHeight//4 + displayHeight//16))
         self.surface.blit(text4, text_rect4)
@@ -315,8 +320,10 @@ class Chess_Board(object):
                 pygame.display.update()
 
     def changeStyles(self):
+        
         imgOptionsurface = pygame.Surface([displayWidth, displayHeight])
-        imgOptionsurface.fill((105,105,105))
+        #imgOptionsurface.fill((105,105,105))
+        imgOptionsurface.fill((0,0,0))
         imgOptionsurface_rect = imgOptionsurface.get_rect(center = (displayWidth//2, displayHeight//2))
         self.surface.blit(imgOptionsurface, imgOptionsurface_rect)
 
@@ -356,27 +363,31 @@ class Chess_Board(object):
         self.surface.blit(image7, button7)
         self.surface.blit(image8, button8)
 
-        titlefont = pygame.font.SysFont('Helvetica', 40)
-        font = pygame.font.SysFont('Helvetica', 18)
-        text = titlefont.render("Customize Your Board", True, (0,0,0))
+        titlefont = pygame.font.SysFont(None, displayHeight//8)
+        subtitlefont = pygame.font.SysFont(None, displayHeight//14)
+        font = pygame.font.SysFont(None, displayHeight//24)
+        #text = titlefont.render("Customize Your Board", True, (255, 215, 0))
+        self.draw_text('Customize Your Board', titlefont, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
         
-        ptext = titlefont.render("Piece Sets", True, (0,0,0))
-        text1 = font.render("Original Set", True, (0,0,0))
-        text2 = font.render("Gold & Silver Set", True, (0,0,0))
-        text3 = font.render("Super Mario Bros Set", True, (0,0,0))
-        text4 = font.render("Star Wars Set", True, (0,0,0))
+        self.draw_text('Piece Sets', subtitlefont, (255, 255, 255), screen, displayWidth//4, displayHeight//6.4)
+        #ptext = titlefont.render("Piece Sets", True, (0,0,0))
+        text1 = font.render("Original", True, (255,255,255))
+        text2 = font.render("Gold & Silver", True, (255,255,255))
+        text3 = font.render("Super Mario Bros", True, (255,255,255))
+        text4 = font.render("Star Wars", True, (255,255,255))
         
-        ctext = titlefont.render("Board Colors", True, (0,0,0))
-        text5 = font.render("White / Brown", True, (0,0,0))
-        text6 = font.render("White / Purple", True, (0,0,0))
-        text7 = font.render("White / Blue", True, (0,0,0))
-        text8 = font.render("White / Green", True, (0,0,0))
+        self.draw_text('Board Colors', subtitlefont, (255, 255, 255), screen, displayWidth//4, displayHeight//1.9)
+        #ctext = titlefont.render("Board Colors", True, (0,0,0))
+        text5 = font.render("White / Brown", True, (255,255,255))
+        text6 = font.render("White / Purple", True, (255,255,255))
+        text7 = font.render("White / Blue", True, (255,255,255))
+        text8 = font.render("White / Green", True, (255,255,255))
 
-        text_rect = text.get_rect(center = (displayWidth//2.16, displayHeight//20))
-        self.surface.blit(text, text_rect)
+        #text_rect = text.get_rect(center = (displayWidth//2.16, displayHeight//20))
+        #self.surface.blit(text, text_rect)
 
-        ptext_rect = text.get_rect(center =(displayWidth//4, displayHeight//6.4))
-        self.surface.blit(ptext, ptext_rect)
+        #ptext_rect = text.get_rect(center =(displayWidth//4, displayHeight//6.4))
+        #self.surface.blit(ptext, ptext_rect)
 
         text1_rect = text1.get_rect(center = (displayWidth//8 + displayWidth//26.6, displayHeight//2.5))
         self.surface.blit(text1, text1_rect)
@@ -390,8 +401,8 @@ class Chess_Board(object):
         text4_rect = text4.get_rect(center = (displayWidth//2 + 2*displayWidth//8 + displayWidth//11, displayHeight//2.5))
         self.surface.blit(text4, text4_rect)
         
-        ctext_rect = ctext.get_rect(center = (displayWidth//6.8, displayHeight//2 + displayHeight//20))
-        self.surface.blit(ctext, ctext_rect)
+        #ctext_rect = ctext.get_rect(center = (displayWidth//6.8, displayHeight//2 + displayHeight//20))
+        #self.surface.blit(ctext, ctext_rect)
         
         text5_rect = text5.get_rect(center = (displayWidth//8 + displayWidth//26.6, displayHeight//2 + 2*displayHeight//8 + displayHeight//32))
         self.surface.blit(text5, text5_rect)
@@ -595,39 +606,39 @@ class Chess_Board(object):
         global Color2
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont(None, displayHeight//4)
-        button_font = pygame.font.SysFont(None, displayHeight//11)
+        font = pygame.font.SysFont(None, displayHeight//6)
+        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
 
         while True:
             screen.fill((0,0,0))
-            self.draw_text('Options', font, (255, 255, 255), screen, displayWidth//20, displayHeight//22)
+            self.draw_text('Options', font, (255, 215, 0), screen, displayWidth//20, displayHeight//22)
             mx, my = pygame.mouse.get_pos()
 
             option1 = pygame.Rect(displayWidth//4, displayHeight//4.5, displayWidth//2,  displayHeight//10)
-            option2 = pygame.Rect(displayWidth//4, displayHeight//2.25, displayWidth//2, displayHeight//10)
-            option3 = pygame.Rect(displayWidth//4, displayHeight//1.6, displayWidth//2, displayHeight//10)
-            option4 = pygame.Rect(displayWidth//4, displayHeight//1.30, displayWidth//2, displayHeight//10)
-            option5 = pygame.Rect(displayWidth//4, displayHeight//1.15, displayWidth//2, displayHeight//10)
+            option2 = pygame.Rect(displayWidth//4, displayHeight//2.75, displayWidth//2, displayHeight//10)
+            option3 = pygame.Rect(displayWidth//4, displayHeight//2.00, displayWidth//2, displayHeight//10)
+            option4 = pygame.Rect(displayWidth//4, displayHeight//1.55, displayWidth//2, displayHeight//10)
+            option5 = pygame.Rect(displayWidth//4, displayHeight//1.30, displayWidth//2, displayHeight//10)
 
             if available_moves_tf:
-                pygame.draw.rect(screen, (255, 255, 255), option1)
+                pygame.draw.rect(screen, (211, 211, 211), option1)
                 self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4.5)
             elif available_moves_tf is False:
                 pygame.draw.rect(screen, (255, 0, 0), option1)
                 self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4.5)
             if undo_moves_tf:
-                pygame.draw.rect(screen, (255, 255, 255), option2)
-                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.25)
+                pygame.draw.rect(screen, (211, 211, 211), option2)
+                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.75)
             elif undo_moves_tf is False:
                 pygame.draw.rect(screen, (255, 0, 0), option2)
-                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.25)
-            pygame.draw.rect(screen, (255, 255, 255), option3)
-            self.draw_text('Styles', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.6)
+                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.75)
+            pygame.draw.rect(screen, (211, 211, 211), option3)
+            self.draw_text('Styles', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.00)
 
             pygame.draw.rect(screen, Color1, option4)
-            self.draw_text('P1 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.30)
+            self.draw_text('P1 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.55)
             pygame.draw.rect(screen, Color2, option5)
-            self.draw_text('P2 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.15)
+            self.draw_text('P2 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.30)
             
             pygame.display.update()
 

@@ -895,6 +895,7 @@ class Chess_Board(object):
                     
                     self.update_castling_state(rook)
                     self.update_castling_state(king)
+                    self.prev_move += 1
                     self.movesound.play()
                     self.user_clicks = 2                    
 
@@ -1313,7 +1314,7 @@ class Chess_Board(object):
                     random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
                     select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
                     target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
-                    time.sleep(3) # slow it down
+                    pygame.time.delay(3000)
 
                 elif self.ai_mode == "alpha-beta":
                     best_move = alpha_beta_cutoff_search(self.game)
@@ -1324,6 +1325,7 @@ class Chess_Board(object):
                         select = self.game.get_piece_dict(best_move[0][0], best_move[0][1])
 
                 self.game.make_move(select, target)
+                self.prev_move += 1
                 self.movesound.play()
                 self.prepare_next_turn()
 

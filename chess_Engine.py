@@ -1311,10 +1311,13 @@ class Chess_Board(object):
         while True:
             if self.game.player == 2 and self.ai:
                 if self.ai_mode == "random":
-                    random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
-                    select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
-                    target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
-                    #pygame.time.delay(3000)
+                    if len(self.valid_moves) > 0:
+                        random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
+                        select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
+                        target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
+                        pygame.time.delay(3000)
+                    else: # draw situation
+                        self.end_screen(16)
 
                 elif self.ai_mode == "alpha-beta":
                     best_move = alpha_beta_cutoff_search(self.game)

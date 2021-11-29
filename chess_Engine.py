@@ -922,6 +922,7 @@ class Chess_Board(object):
                     self.game.make_move( self.select, self.target )
                     self.movesound.play()
                     self.update_castling_state(self.select)
+                    self.update_castling_state(self.target)
                     self.prev_move += 1
                     self.user_clicks = 2
 

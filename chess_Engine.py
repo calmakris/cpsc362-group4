@@ -871,38 +871,30 @@ class Chess_Board(object):
                         king = self.select
                         rook = {'piece': piece, 'y': select_y, 'x': select_x}
 
-                    # Update before movement
-                    self.update_castling_state(rook)
-                    self.update_castling_state(king)
-
                     # Queenside castling
                     if rook['x'] < king['x']:
-                        # Move rook
                         self.game.make_move( rook,
-                                             {'piece': rook['piece'],
+                                             {'piece': 0,
                                               'y': rook['y'],
-                                              'x': rook['x'] + 3} )
-                        
-                        # Move king
-                        self.game.make_move( king,
-                                             {'piece': king['piece'],
+                                              'x': rook['x'] + 3},
+                                             (king,
+                                             {'piece': 0,
                                               'y': king['y'],
-                                              'x': king['x'] - 2})
+                                              'x': king['x'] - 2}))
 
                     # Kingside castling
                     elif rook['x'] > king['x']:
-                        # Move rook
                         self.game.make_move( rook,
-                                             {'piece': rook['piece'],
+                                             {'piece':0,
                                               'y': rook['y'],
-                                              'x': rook['x'] - 2} )
-                        
-                        # Move king
-                        self.game.make_move( king,
-                                             {'piece': king['piece'],
+                                              'x': rook['x'] - 2},
+                                             (king,
+                                             {'piece': 0,
                                               'y': king['y'],
-                                              'x': king['x'] + 2})
-
+                                              'x': king['x'] + 2}))
+                    
+                    self.update_castling_state(rook)
+                    self.update_castling_state(king)
                     self.movesound.play()
                     self.user_clicks = 2                    
 
@@ -1269,6 +1261,7 @@ class Chess_Board(object):
         return False
 
     def prepare_next_turn(self):
+        print(self.game.prev_moves)
         if (self.game.player == 1):
             self.game.player = 2
         elif (self.game.player == 2):

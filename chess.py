@@ -117,18 +117,25 @@ class Chess():
         cur_score = cur_score + point_dict[piece_num]
         return cur_score
 
-    def make_move(self, from_dict, to_dict):
-        #print(self.get_valid_moves())
+    def make_move(self, from_dict, to_dict, extra_move=None):
+        """ normal moves include from and to coord. castling move has an extra normal move """
         self.board[ from_dict['y'] ][ from_dict['x'] ] = 0
         self.board[ to_dict['y'] ][ to_dict['x'] ] = from_dict['piece']
-
-        self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling)))
 
         #if kings move keep track where they move to.
         if(from_dict['piece'] == 6):
             self._white_king = ([to_dict['y'], to_dict['x']])
         if(from_dict['piece'] == 16):
             self._black_king = ([to_dict['y'], to_dict['x']])
+
+        if extra_move:
+            # Do extra move if there's one
+            self.board[ extra_move[0]['y'] ][ extra_move[0]['x'] ] = 0
+            self.board[ extra_move[1]['y'] ][ extra_move[1]['x'] ] = extra_move[0]['piece']
+            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling),
+                                    extra_move[0], extra_move[1], copy.deepcopy(self.track_castling)))
+        else:
+            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling)))
         
 
     def is_valid_move(self, select, targetTuple):
@@ -761,15 +768,17 @@ class Chess():
         return moves
 
     def undo_move(self):
-        self.board[self.prev_moves[-1][0]['y']][self.prev_moves[-1][0]['x']] = self.prev_moves[-1][0]['piece']
-        self.board[self.prev_moves[-1][1]['y']][self.prev_moves[-1][1]['x']] = self.prev_moves[-1][1]['piece']
+        for i in range(0, len(self.prev_moves[-1]), 3):
+            #print(i)
+            self.board[self.prev_moves[-1][i]['y']][self.prev_moves[-1][i]['x']] = self.prev_moves[-1][i]['piece']
+            self.board[self.prev_moves[-1][i+1]['y']][self.prev_moves[-1][i+1]['x']] = self.prev_moves[-1][i+1]['piece']
 
-        self.track_castling = copy.deepcopy(self.prev_moves[-1][2])
+            self.track_castling = copy.deepcopy(self.prev_moves[-1][i+2])
 
-        if(self.prev_moves[-1][0]['piece'] == 6):
-            self._white_king = (self.prev_moves[-1][0]['y'], self.prev_moves[-1][0]['x'])
-        if(self.prev_moves[-1][0]['piece']== 16):
-            self._black_king = (self.prev_moves[-1][0]['y'], self.prev_moves[-1][0]['x'])
+            if(self.prev_moves[-1][i]['piece'] == 6):
+                self._white_king = (self.prev_moves[-1][i]['y'], self.prev_moves[-1][i]['x'])
+            if(self.prev_moves[-1][i]['piece']== 16):
+                self._black_king = (self.prev_moves[-1][i]['y'], self.prev_moves[-1][i]['x'])
         
         self.prev_moves.pop()
 

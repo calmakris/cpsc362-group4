@@ -729,17 +729,17 @@ class Chess_Board(object):
 
     def end_screen(self, piece):
         second_surface = pygame.Surface([displayWidth//2,displayHeight//2])
-        second_surface.fill((105,105,105))
+        second_surface.fill((0,0,0))
         second_surface_rect = second_surface.get_rect(center = (displayWidth//2, displayHeight//2))
         self.surface.blit(second_surface, second_surface_rect)
 
 
-        font = pygame.font.SysFont('Helvetica' , 36)
-        font2 = pygame.font.SysFont('Helvetica', 36)
+        font = pygame.font.SysFont(None , displayHeight//18, 1)
+        font2 = pygame.font.SysFont(None, 36)
         if piece == 6:
-            winner = "Black Wins!!!"
+            winner = "Black Wins!"
         if piece == 16:
-            winner = "White Wins!!!"
+            winner = "White Wins!"
         if piece == -1:
             winner = "Draw"
         startprompt = font2.render("Game Over, " + winner, True, (255, 215, 0)) #title font
@@ -1016,9 +1016,9 @@ class Chess_Board(object):
             self.surface.blit(image13, button13)
             self.surface.blit(image14, button14)
             self.surface.blit(image15, button15) 
-            titlefont = pygame.font.SysFont('Helvetica', 36)
-            font = pygame.font.SysFont('Helvetica', 28)
-            text = titlefont.render("Choose Piece to Promote to!", True, (0,0,0))
+            titlefont = pygame.font.SysFont(None, 36)
+            font = pygame.font.SysFont(None, 28)
+            text = titlefont.render("Choose Piece to Promote to!", (255, 215, 0))
             text12 = font.render("Knight", True, (0,0,0))
             text13 = font.render("Rook", True, (0,0,0))
             text14 = font.render("Bishop", True, (0,0,0))
@@ -1148,8 +1148,8 @@ class Chess_Board(object):
             self.surface.blit(image3, button3)
             self.surface.blit(image4, button4)
             self.surface.blit(image5, button5) 
-            font = pygame.font.SysFont('Helvetica', 36)
-            text = font.render("Choose Piece to Promote to!", True, (0,0,0))
+            font = pygame.font.SysFont(None, displayHeight//20)
+            text = font.render("Choose Piece to Promote to!", True, (255, 215, 0))
             text2 = font.render("Knight", True, (0,0,0))
             text3 = font.render("Rook", True, (0,0,0))
             text4 = font.render("Bishop", True, (0,0,0))

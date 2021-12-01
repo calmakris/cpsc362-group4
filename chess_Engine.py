@@ -7,6 +7,7 @@ import pygame, sys, time, math, copy, chess, os, random, numpy as np
 #These are varoables representing colors BROWN and White for pygame applications.
 available_moves_tf = True
 undo_moves_tf = True
+sound_onOff = 'on'
 BROWN = (139, 69, 19)
 WHITE = (255, 255, 255)
 PURPLE = (106, 90, 205)
@@ -604,6 +605,10 @@ class Chess_Board(object):
         global undo_moves_tf
         global Color1
         global Color2
+        global sound_onOff
+        image9 = COVERIMAGES[9]
+        image10 = COVERIMAGES[10]
+        image11 = COVERIMAGES[11]
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
         font = pygame.font.SysFont(None, displayHeight//6)
@@ -611,34 +616,59 @@ class Chess_Board(object):
 
         while True:
             screen.fill((0,0,0))
-            self.draw_text('Options', font, (255, 215, 0), screen, displayWidth//20, displayHeight//22)
+            self.draw_text('Options', font, (255, 215, 0), screen, displayWidth//20, displayHeight//25)
             mx, my = pygame.mouse.get_pos()
 
-            option1 = pygame.Rect(displayWidth//4, displayHeight//4.5, displayWidth//2,  displayHeight//10)
-            option2 = pygame.Rect(displayWidth//4, displayHeight//2.75, displayWidth//2, displayHeight//10)
-            option3 = pygame.Rect(displayWidth//4, displayHeight//2.00, displayWidth//2, displayHeight//10)
-            option4 = pygame.Rect(displayWidth//4, displayHeight//1.55, displayWidth//2, displayHeight//10)
-            option5 = pygame.Rect(displayWidth//4, displayHeight//1.30, displayWidth//2, displayHeight//10)
+            option1 = pygame.Rect(displayWidth//4, displayHeight//5.75, displayWidth//2, displayHeight//10)
+            option2 = pygame.Rect(displayWidth//4, displayHeight//3.20, displayWidth//2, displayHeight//10)
+            option3 = pygame.Rect(displayWidth//4, displayHeight//2.22, displayWidth//2, displayHeight//10)
+            option4 = pygame.Rect(displayWidth//4, displayHeight//1.70, displayWidth//2, displayHeight//10)
+            option5 = pygame.Rect(displayWidth//4, displayHeight//1.38, displayWidth//2, displayHeight//10)
+            option6 = pygame.Rect(displayWidth//4, displayHeight//1.16, displayWidth//10, displayHeight//10)
+            option7 = pygame.Rect(displayWidth//2.22, displayHeight//1.16, displayWidth//10, displayHeight//10)
+            option8 = pygame.Rect(displayWidth//1.54, displayHeight//1.16, displayWidth//10, displayHeight//10)
 
             if available_moves_tf:
                 pygame.draw.rect(screen, (211, 211, 211), option1)
-                self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4.5)
+                self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//5.75)
             elif available_moves_tf is False:
                 pygame.draw.rect(screen, (255, 0, 0), option1)
-                self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4.5)
+                self.draw_text('Highlight Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//5.75)
             if undo_moves_tf:
                 pygame.draw.rect(screen, (211, 211, 211), option2)
-                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.75)
+                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//3.20)
             elif undo_moves_tf is False:
                 pygame.draw.rect(screen, (255, 0, 0), option2)
-                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.75)
+                self.draw_text('Undo Moves', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//3.20)
             pygame.draw.rect(screen, (211, 211, 211), option3)
-            self.draw_text('Styles', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.00)
+            self.draw_text('Styles', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2.22)
 
             pygame.draw.rect(screen, Color1, option4)
-            self.draw_text('P1 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.55)
+            self.draw_text('P1 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.70)
             pygame.draw.rect(screen, Color2, option5)
-            self.draw_text('P2 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.30)
+            self.draw_text('P2 [] Color', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//1.38)
+            
+            if sound_onOff == 'on':
+                pygame.draw.rect(screen, (211, 211, 211), option6)
+                pygame.draw.rect(screen, (211, 211, 211), option7)
+                pygame.draw.rect(screen, (255, 0, 0),     option8)
+                self.surface.blit(image9,  option6)
+                self.surface.blit(image10, option7)
+                self.surface.blit(image11, option8)
+            elif sound_onOff == 'off':
+                pygame.draw.rect(screen, (255, 0, 0),     option6)
+                pygame.draw.rect(screen, (211, 211, 211), option7)
+                pygame.draw.rect(screen, (211, 211, 211), option8)
+                self.surface.blit(image9,  option6)
+                self.surface.blit(image10, option7)
+                self.surface.blit(image11, option8)
+            elif sound_onOff == 'low':
+                pygame.draw.rect(screen, (211, 211, 211), option6)
+                pygame.draw.rect(screen, (255, 0, 0),     option7)
+                pygame.draw.rect(screen, (211, 211, 211), option8)
+                self.surface.blit(image9,  option6)
+                self.surface.blit(image10, option7)
+                self.surface.blit(image11, option8)
             
             pygame.display.update()
 
@@ -683,24 +713,20 @@ class Chess_Board(object):
                             self.square1color = WHITE
                             self.square2color = BROWN
                             self.draw_board()
-                            
                         elif imgpack == 6:
                             self.square1color = WHITE
                             self.square2color = PURPLE
                             self.draw_board()
-                            
                         elif imgpack == 7:
                             self.square1color = WHITE
                             self.square2color = BLUE
                             print()
                             print()
                             self.draw_board()
-                           
                         elif imgpack == 8:
                             self.square1color = WHITE
                             self.square2color = GREEN
                             self.draw_board()
-    
                     elif option4.collidepoint((mx, my)):
                         if Color1 == clr_dict["Red"]:
                             Color1 = clr_dict["Blue"]
@@ -724,6 +750,18 @@ class Chess_Board(object):
                             Color2 = clr_dict["Teal"]
                         elif Color2 == clr_dict["Teal"]:
                             Color2 = clr_dict["Yellow"]
+                    elif option6.collidepoint((mx,my)):
+                        self.buttonclick.play()
+                        sound_onOff = 'off'
+                        self.backgroundmusic()
+                    elif option7.collidepoint((mx,my)):
+                        sound_onOff = 'low'
+                        self.buttonclick.play()
+                        self.backgroundmusic()
+                    elif option8.collidepoint((mx,my)):
+                        self.buttonclick.play()
+                        sound_onOff = 'on'
+                        self.backgroundmusic()
 
             pygame.display.update()
 
@@ -814,7 +852,7 @@ class Chess_Board(object):
         pieces = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16]
         for piece in pieces:
            IMAGES[piece] = pygame.transform.scale(pygame.image.load(os.path.join(os.path.dirname(__file__), imgpack, str(piece) + '.png')).convert_alpha(), (squareSize, squareSize))
-        covers = [1,2,3,4,5,6,7,8]
+        covers = [1,2,3,4,5,6,7,8,9,10,11]
         for cover in covers:
             COVERIMAGES[cover] = pygame.transform.scale(pygame.image.load(os.path.join(os.path.dirname(__file__), 'coverImages', str(cover) + '.png')).convert_alpha(), (squareSize, squareSize))
     
@@ -1308,7 +1346,13 @@ class Chess_Board(object):
     # Not much now but more can be added later
     def backgroundmusic(self):
         pygame.mixer.music.load('Background.wav')
-        pygame.mixer.music.set_volume(.30)
+        if sound_onOff == 'on':
+            pygame.mixer.music.set_volume(.30)
+            #pygame.mixer.music.play(-1)
+        elif sound_onOff == 'off': 
+            pygame.mixer.music.set_volume(0)
+        elif sound_onOff == 'low':
+            pygame.mixer.music.set_volume(.05)
         pygame.mixer.music.play(-1)
         
     def start_game(self):

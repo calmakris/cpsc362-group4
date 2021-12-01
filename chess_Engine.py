@@ -13,7 +13,7 @@ PURPLE = (106, 90, 205)
 BLUE = (28, 155, 188)
 GREEN = (60, 179, 113)
 RED = (255,0,0)
-clr_dict = { 			#change here
+clr_dict = { 			
     "Red" : (255, 0, 0),
     "Lime" : (0, 255, 0),
     "Blue" : (0, 0, 255),
@@ -238,9 +238,7 @@ class Chess_Board(object):
         self.surface.fill((0,0,0))
         
         text1 = "Paused"
-        #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
         font = pygame.font.SysFont(None, displayHeight//6)
-        #button_font = pygame.font.SysFont(None, displayHeight//18, 1)
         text1 = font.render(text1, 1, (255, 215, 0))
         text_rect1 = text1.get_rect(center = (displayWidth// 2, displayHeight // 8))
         self.surface.blit(text1, text_rect1)
@@ -253,21 +251,18 @@ class Chess_Board(object):
         pygame.draw.rect(self.surface, [211,211,211], button3)
 
         text2 = "Continue"
-        #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
         font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text2 = font.render(text2, 1, (0,0,0))
         text_rect2 = text2.get_rect(center = (displayWidth// 2, displayHeight // 4 + displayHeight//16))
         self.surface.blit(text2, text_rect2)
 
         text3 = "Options"
-        #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
         font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text3 = font.render(text3, 1, (0,0,0))
         text_rect3 = text3.get_rect(center = (displayWidth// 2, displayHeight // 2 + displayHeight//16))
         self.surface.blit(text3, text_rect3)
 
         text4 = "Quit Game"
-        #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
         font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text4 = font.render(text4, 1, (0,0,0))
         text_rect4 = text4.get_rect(center = (displayWidth// 2, displayHeight - displayHeight//4 + displayHeight//16))
@@ -322,7 +317,6 @@ class Chess_Board(object):
     def changeStyles(self):
         
         imgOptionsurface = pygame.Surface([displayWidth, displayHeight])
-        #imgOptionsurface.fill((105,105,105))
         imgOptionsurface.fill((0,0,0))
         imgOptionsurface_rect = imgOptionsurface.get_rect(center = (displayWidth//2, displayHeight//2))
         self.surface.blit(imgOptionsurface, imgOptionsurface_rect)
@@ -366,28 +360,19 @@ class Chess_Board(object):
         titlefont = pygame.font.SysFont(None, displayHeight//8)
         subtitlefont = pygame.font.SysFont(None, displayHeight//14)
         font = pygame.font.SysFont(None, displayHeight//24)
-        #text = titlefont.render("Customize Your Board", True, (255, 215, 0))
         self.draw_text('Customize Your Board', titlefont, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
         
         self.draw_text('Piece Sets', subtitlefont, (255, 255, 255), screen, displayWidth//4, displayHeight//6.4)
-        #ptext = titlefont.render("Piece Sets", True, (0,0,0))
         text1 = font.render("Original", True, (255,255,255))
         text2 = font.render("Gold & Silver", True, (255,255,255))
         text3 = font.render("Super Mario Bros", True, (255,255,255))
         text4 = font.render("Star Wars", True, (255,255,255))
         
         self.draw_text('Board Colors', subtitlefont, (255, 255, 255), screen, displayWidth//4, displayHeight//1.9)
-        #ctext = titlefont.render("Board Colors", True, (0,0,0))
         text5 = font.render("White / Brown", True, (255,255,255))
         text6 = font.render("White / Purple", True, (255,255,255))
         text7 = font.render("White / Blue", True, (255,255,255))
         text8 = font.render("White / Green", True, (255,255,255))
-
-        #text_rect = text.get_rect(center = (displayWidth//2.16, displayHeight//20))
-        #self.surface.blit(text, text_rect)
-
-        #ptext_rect = text.get_rect(center =(displayWidth//4, displayHeight//6.4))
-        #self.surface.blit(ptext, ptext_rect)
 
         text1_rect = text1.get_rect(center = (displayWidth//8 + displayWidth//26.6, displayHeight//2.5))
         self.surface.blit(text1, text1_rect)
@@ -400,9 +385,6 @@ class Chess_Board(object):
 
         text4_rect = text4.get_rect(center = (displayWidth//2 + 2*displayWidth//8 + displayWidth//11, displayHeight//2.5))
         self.surface.blit(text4, text4_rect)
-        
-        #ctext_rect = ctext.get_rect(center = (displayWidth//6.8, displayHeight//2 + displayHeight//20))
-        #self.surface.blit(ctext, ctext_rect)
         
         text5_rect = text5.get_rect(center = (displayWidth//8 + displayWidth//26.6, displayHeight//2 + 2*displayHeight//8 + displayHeight//32))
         self.surface.blit(text5, text5_rect)

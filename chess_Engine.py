@@ -1312,7 +1312,6 @@ class Chess_Board(object):
         return False
 
     def prepare_next_turn(self):
-        print(self.game.prev_moves)
         if (self.game.player == 1):
             self.game.player = 2
         elif (self.game.player == 2):
@@ -1333,6 +1332,7 @@ class Chess_Board(object):
 
         moves = self.game.get_valid_moves()
         valid_moves = self.game.further_validation(moves)
+        self.game.get_valid_castling(moves)
         if len(valid_moves) == 0 and self.game.check():
             if (self.game.player == 1):
                 self.end_screen(6)

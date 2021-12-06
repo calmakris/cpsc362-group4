@@ -2,7 +2,7 @@
 #Essentially this will be where pygame is programmed and the other file will be where the chess 
 #functions will be called.
 
-import pygame, sys, time, math, copy, chess, os, random, numpy as np
+import pygame, sys, time, math, copy, chess, os, random, numpy as np, animation
 
 #These are varoables representing colors BROWN and White for pygame applications.
 available_moves_tf = True
@@ -66,6 +66,7 @@ class Chess_Board(object):
         self.prev_move = 0
         self.buttonclick = pygame.mixer.Sound('buttonClick.wav')
         self.movesound = pygame.mixer.Sound('ChessClick.wav')
+        self.explodesound = pygame.mixer.Sound('john.wav')
 
         self.ai = False
         self.ai_undo = False
@@ -74,7 +75,8 @@ class Chess_Board(object):
         self.valid_moves = self.game.get_valid_moves()
         self.square1color = WHITE
         self.square2color = BROWN
-    
+        self.capture = False
+        self.capture_location = [0,0]
     def setUp(self):
         #imports all available pygame modules
         
@@ -969,6 +971,12 @@ class Chess_Board(object):
 
                 # check if select-target combo is in available moves
                 if move in self.valid_moves:
+                    if self.target["piece"] != 0:
+                        self.capture = True
+                        self.capture_location[0] = self.target["x"] * 100 + 50
+                        print(self.capture_location[0])
+                        self.capture_location[1] = self.target["y"] * 100 + 50
+                        print(self.capture_location[1])
                     self.game.make_move( self.select, self.target )
                     self.movesound.play()
                     self.update_castling_state(self.select)
@@ -1338,6 +1346,8 @@ class Chess_Board(object):
                 self.end_screen(6)
             else:
                 self.end_screen(16)
+        if len(valid_moves) == 0:
+            self.end_screen(-1)
         self.valid_moves = moves
 
     # This function starts up the game and sets all the parameters of said game.
@@ -1355,6 +1365,28 @@ class Chess_Board(object):
             pygame.mixer.music.set_volume(.05)
         pygame.mixer.music.play(-1)
         
+    def explosion_runthrough(self):
+        run = True
+        self.clock.tick(60)
+        explosion_group = pygame.sprite.Group()
+        self.explodesound.play()
+        while run:
+            explosion_group.draw(self.surface)
+            explosion_group.update()
+
+            if self.capture == True:
+                explosion = animation.Explosion(
+                    self.capture_location[0], self.capture_location[1]
+                )
+                explosion_group.add(explosion)
+                self.capture = False
+            print("wow")
+            if len(explosion_group) == 0:
+                run = False
+                print("empty Sprites")
+            pygame.display.update()
+        
+    
     def start_game(self):
 
         self.setUp()
@@ -1381,6 +1413,12 @@ class Chess_Board(object):
                     else:
                         target = self.game.get_piece_dict(best_move[1][0], best_move[1][1])
                         select = self.game.get_piece_dict(best_move[0][0], best_move[0][1])
+                
+                if target["piece"] != 0:
+                    self.capture = True
+                    self.capture_location[0] = target["x"] * 100 + 50
+                    self.capture_location[1] = target["y"] * 100 + 50
+                self.game.make_move(select, target)
 
                 # When AI picked a castling move (could be a function but too lazy lol)
                 if (select['piece'] == 13 and target['piece'] == 16) or (select['piece'] == 16 and target['piece'] == 13):
@@ -1504,11 +1542,17 @@ class Chess_Board(object):
                         #this is to make pygame wait for user input.
                         evemt = pygame.event.wait()
                         pygame.display.update()
-
+                    
                     self.prepare_next_turn()
                     self.user_clicks = 0
     
                 self.clock.tick(60)
+            if self.capture == True:
+                self.explosion_runthrough()
+                self.capture = False
+                self.draw_board()
+                self.drawPieces()
+                pygame.display.update()
 
         quit()
 

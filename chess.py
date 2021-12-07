@@ -13,6 +13,11 @@ class Chess():
         self.in_check = False
         self.player1 = 0
         self.player2 = 0
+        self.p1_count = 300
+        self.p2_count = 300
+        self.blitz = False
+        self.time_up = False
+        self.current_time = 0
         self.prev_moves = []
         self.movesound = pygame.mixer.Sound('ChessClick.wav')
         # self.board_change = false could be used to determine if change occured? 
@@ -111,11 +116,10 @@ class Chess():
 
     def point_counter(self, piece, cur_score):
         piece_num = piece
-        point_dict = {1:1, 2:3, 4:3, 3:5, 5:9}
+        point_dict = {0:0,1:1, 2:3, 4:3, 3:5, 5:9, 6:100}
         if piece_num > 10:
             piece_num = piece_num - 10
-        cur_score = cur_score + point_dict[piece_num]
-        return cur_score
+        return cur_score + point_dict[piece_num]
 
     def make_move(self, from_dict, to_dict):
         #print(self.get_valid_moves())

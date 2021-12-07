@@ -39,7 +39,7 @@ pygame.init()
 pack = 'images/Originals'
 # start of declarations
 hover_col = (75, 225, 255)
-undo_button1 = pygame.Rect(775, 385, 25, 25) 
+undo_button1 = pygame.Rect(400, 825, 25, 25) 
 pos1 = pygame.mouse.get_pos()
 
 screen = pygame.display.set_mode((displayWidth,displayHeight))
@@ -99,7 +99,14 @@ class Chess_Board(object):
     
         self.load_Images(pack)
         self.drawPieces()
-
+        pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
+        font = pygame.font.Font('freesansbold.ttf', 40)
+        text = font.render("player 1: " + str(self.game.player1)+" player 2: " + str(self.game.player2), True, WHITE)
+        text_score_rect = text.get_rect(center =(displayWidth/2, (100/2)+800))
+        self.surface.blit(text,text_score_rect)
+        
+        self.load_Images(pack)
+        self.drawPieces()
         # updates the pygame screen.
         pygame.display.update()
         
@@ -107,6 +114,7 @@ class Chess_Board(object):
         
         self.clock = pygame.time.Clock()
         #This function should set up the peices and be used to make changes to the pieces.
+        
 
     def draw_board(self):
         for x in range(8):
@@ -156,6 +164,7 @@ class Chess_Board(object):
             self.surface.blit(text_p1score,text_p1score_rect)
             self.surface.blit(text_p2score,text_p2score_rect)
 
+            
     def draw_text(self, text, font, color, surface, x, y):
         textobj = font.render(text, 1, color)
         textrect = textobj.get_rect()
@@ -912,7 +921,6 @@ class Chess_Board(object):
         select_y = math.floor(select_y / squareSize)
         if select_x < 8 and select_y < 8:
             piece = self.game.board[select_y][select_x]
-            #print( (select_y, select_x) )
         else:
             piece = -1
 
@@ -1029,6 +1037,7 @@ class Chess_Board(object):
                     else:
                         self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
                     #adding points
+                    
 
     # Keeps track rooks and kings for castling
     def update_castling_state(self, selected):
@@ -1590,7 +1599,10 @@ class Chess_Board(object):
             
                 # if user clicks is 2 then we know some sort of board state occured. Now we have to update the board.
                 if (self.user_clicks == 2):
-
+                    if self.game.player == 1 and self.game.p1_count < 10 and self.game.p2_count > 0 and self.game.time_up == False:
+                        self.game.p1_count = self.game.p1_count + 10
+                    elif self.game.player == 2 and self.game.p2_count < 10 and self.game.p2_count > 0 and self.game.time_up == False:
+                        self.game.p2_count = self.game.p2_count + 10
                     #Checks if the player can validly make a pawn promotion
                     if(self.isPawnPromotion(self.target['y'], self.target['x'])):
                         #update the board to show that the pawn moved to edge of board

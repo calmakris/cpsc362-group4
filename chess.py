@@ -1,4 +1,5 @@
 import copy
+from typing import TYPE_CHECKING
 import pygame
 
 class Chess():
@@ -13,6 +14,11 @@ class Chess():
         self.in_check = False
         self.player1 = 0
         self.player2 = 0
+        self.p1_count = 300
+        self.p2_count = 300
+        self.blitz = False
+        self.time_up = False
+        self.current_time = 0
         self.prev_moves = []
         self.movesound = pygame.mixer.Sound('ChessClick.wav')
         # self.board_change = false could be used to determine if change occured? 
@@ -111,24 +117,30 @@ class Chess():
 
     def point_counter(self, piece, cur_score):
         piece_num = piece
-        point_dict = {1:1, 2:3, 4:3, 3:5, 5:9}
+        point_dict = {0:0,1:1, 2:3, 4:3, 3:5, 5:9, 6:100}
         if piece_num > 10:
             piece_num = piece_num - 10
-        cur_score = cur_score + point_dict[piece_num]
-        return cur_score
+        return cur_score + point_dict[piece_num]
 
-    def make_move(self, from_dict, to_dict):
-        #print(self.get_valid_moves())
+    def make_move(self, from_dict, to_dict, extra_move=None):
+        """ normal moves include from and to coord. castling move has an extra normal move """
         self.board[ from_dict['y'] ][ from_dict['x'] ] = 0
         self.board[ to_dict['y'] ][ to_dict['x'] ] = from_dict['piece']
-
-        self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling)))
 
         #if kings move keep track where they move to.
         if(from_dict['piece'] == 6):
             self._white_king = ([to_dict['y'], to_dict['x']])
         if(from_dict['piece'] == 16):
             self._black_king = ([to_dict['y'], to_dict['x']])
+
+        if extra_move:
+            # Do extra move if there's one
+            self.board[ extra_move[0]['y'] ][ extra_move[0]['x'] ] = 0
+            self.board[ extra_move[1]['y'] ][ extra_move[1]['x'] ] = extra_move[0]['piece']
+            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling),
+                                    extra_move[0], extra_move[1], copy.deepcopy(self.track_castling)))
+        else:
+            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling)))
         
 
     def is_valid_move(self, select, targetTuple):
@@ -213,7 +225,6 @@ class Chess():
 
         return False
 
-    # TODO: Castling
     def get_valid_moves(self):
         moves = []
 
@@ -699,79 +710,112 @@ class Chess():
                             moves.append( ((select['y'], select['x']), 
                                            (down, left)) )
 
-                    # Castling Rules:
-                    # Cannot castle when in check (TODO)
-                    # Cannot castle when result leads to a check (taken care of by further_validation)
-                    # Rook and King never moved at all (checked below)
-                    # Space between Rook and King are empty (checked below)
-                    # Castling does not move through a check - so no enemy moves in spaces between Rook and King (can be added to further_validation)
-                    can_castle = True
-                    if self.player == 1:
-                        if select['piece'] == 3 and self.track_castling['King1'] == False:
-                            if self.track_castling['BotL'] == False:
-                                # check if space between BotL rook and King1 is empty
-                                can_castle = True
-                                for x in range(1, 4):
-                                    if self.board[7][x] != 0:
-                                        can_castle = False
-                                
-                                if can_castle:
-                                    # user drops rook on king or king on rook
-                                    moves.append( ((7, 0), (7, 4)) )
-                                    moves.append( ((7, 4), (7, 0)) )
-
-                            if self.track_castling['BotR'] == False:
-                                # check if space between King1 and BotR rook is empty
-                                can_castle = True
-                                for x in range(5, 7):
-                                    if self.board[7][x] != 0:
-                                        can_castle = False
-                                
-                                if can_castle:
-                                    # user drops rook on king or king on rook
-                                    moves.append( ((7, 4), (7, 7)) )
-                                    moves.append( ((7, 7), (7, 4)) )
-
-                    if self.player == 2:
-                        if select['piece'] == 13 and self.track_castling['King2'] == False:
-                            if self.track_castling['TopL'] == False:
-                                # check if space between TopL rook and Top1 is empty
-                                can_castle = True
-                                for x in range(1, 4):
-                                    if self.board[0][x] != 0:
-                                        can_castle = False
-                                
-                                if can_castle:
-                                    # user drops rook on king or king on rook
-                                    moves.append( ((0, 0), (0, 4)) )
-                                    moves.append( ((0, 4), (0, 0)) )
-
-                            if self.track_castling['TopR'] == False:
-                                # check if space between King2 and TopR rook is empty
-                                can_castle = True
-                                for x in range(5, 7):
-                                    if self.board[0][x] != 0:
-                                        can_castle = False
-                                
-                                if can_castle:
-                                    # user drops rook on king or king on rook
-                                    moves.append( ((0, 4), (0, 7)) )
-                                    moves.append( ((0, 7), (0, 4)) )
-
         return moves
 
     def undo_move(self):
-        self.board[self.prev_moves[-1][0]['y']][self.prev_moves[-1][0]['x']] = self.prev_moves[-1][0]['piece']
-        self.board[self.prev_moves[-1][1]['y']][self.prev_moves[-1][1]['x']] = self.prev_moves[-1][1]['piece']
+        for i in range(0, len(self.prev_moves[-1]), 3):
+            self.board[self.prev_moves[-1][i]['y']][self.prev_moves[-1][i]['x']] = self.prev_moves[-1][i]['piece']
+            self.board[self.prev_moves[-1][i+1]['y']][self.prev_moves[-1][i+1]['x']] = self.prev_moves[-1][i+1]['piece']
 
-        self.track_castling = copy.deepcopy(self.prev_moves[-1][2])
+            self.track_castling = copy.deepcopy(self.prev_moves[-1][i+2])
 
-        if(self.prev_moves[-1][0]['piece'] == 6):
-            self._white_king = (self.prev_moves[-1][0]['y'], self.prev_moves[-1][0]['x'])
-        if(self.prev_moves[-1][0]['piece']== 16):
-            self._black_king = (self.prev_moves[-1][0]['y'], self.prev_moves[-1][0]['x'])
+            if(self.prev_moves[-1][i]['piece'] == 6):
+                self._white_king = (self.prev_moves[-1][i]['y'], self.prev_moves[-1][i]['x'])
+            if(self.prev_moves[-1][i]['piece']== 16):
+                self._black_king = (self.prev_moves[-1][i]['y'], self.prev_moves[-1][i]['x'])
         
         self.prev_moves.pop()
+
+    def is_space_under_attack(self, opponent_moves, spaces_list):
+        for m in opponent_moves:
+            if m[1] in spaces_list:
+                return True
+
+        return False
+
+    def get_valid_castling(self, moves):
+        """ Appends valid castling moves to current valid moves 
+            Castling Rules:
+            Cannot castle when in check
+            Cannot castle when result leads to a check
+            Rook and King never moved at all
+            Space between Rook and King are empty
+            Castling does not move through a check - so no enemy moves in spaces between Rook and King """
+
+        if self.check():
+            return
+
+        can_castle = True
+        opponent_moves = self.get_opponent_moves()
+
+        if self.player == 1:
+            if self.track_castling['King1'] == False:
+                if self.track_castling['BotL'] == False:
+                    # check if space between BotL rook and King1 is empty
+                    can_castle = True
+                    for x in range(1, 4):
+                        if self.board[7][x] != 0:
+                            can_castle = False
+                    
+                    # check if space the king will travel is under attack
+                    if self.is_space_under_attack(opponent_moves, [(7, 2), (7, 3)]):
+                        can_castle = False
+                    
+                    if can_castle:
+                        # user drops rook on king or king on rook
+                        moves.append( ((7, 0), (7, 4)) )
+                        moves.append( ((7, 4), (7, 0)) )
+
+                if self.track_castling['BotR'] == False:
+                    # check if space between King1 and BotR rook is empty
+                    can_castle = True
+                    for x in range(5, 7):
+                        if self.board[7][x] != 0:
+                            can_castle = False
+
+                    # check if space the king will travel is under attack
+                    if self.is_space_under_attack(opponent_moves, [(7, 5), (7, 6)]):
+                        can_castle = False
+                    
+                    if can_castle:
+                        # user drops rook on king or king on rook
+                        moves.append( ((7, 4), (7, 7)) )
+                        moves.append( ((7, 7), (7, 4)) )
+
+        if self.player == 2:
+            if self.track_castling['King2'] == False:
+                if self.track_castling['TopL'] == False:
+                    # check if space between TopL rook and King2 is empty
+                    can_castle = True
+                    for x in range(1, 4):
+                        if self.board[0][x] != 0:
+                            can_castle = False
+                    
+                    # check if space the king will travel is under attack
+                    if self.is_space_under_attack(opponent_moves, [(0, 2), (0, 3)]):
+                        can_castle = False
+                    
+                    if can_castle:
+                        # user drops rook on king or king on rook
+                        moves.append( ((0, 0), (0, 4)) )
+                        moves.append( ((0, 4), (0, 0)) )
+
+                if self.track_castling['TopR'] == False:
+                    # check if space between King2 and TopR rook is empty
+                    can_castle = True
+                    for x in range(5, 7):
+                        if self.board[0][x] != 0:
+                            can_castle = False
+
+                    # check if space the king will travel is under attack
+                    if self.is_space_under_attack(opponent_moves, [(0, 5), (0, 6)]):
+                        can_castle = False
+                    
+                    if can_castle:
+                        # user drops rook on king or king on rook
+                        moves.append( ((0, 4), (0, 7)) )
+                        moves.append( ((0, 7), (0, 4)) )
+
 
     #This function takes the moves from get valid moves and further validates them.
     def further_validation(self, moves):

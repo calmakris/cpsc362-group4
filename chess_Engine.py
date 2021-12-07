@@ -1523,6 +1523,11 @@ class Chess_Board(object):
 
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
+            if not self.ai and self.user_clicks == 0:
+                self.draw_board()
+                self.drawPieces()
+                pygame.display.update()
+
             if self.game.blitz == True:
                 if self.game.player == 1 and self.game.time_up == False:
                     if self.game.p1_count <= 0:

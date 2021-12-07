@@ -122,6 +122,12 @@ class Chess_Board(object):
                 
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+
+        if len(self.game.prev_moves):
+            pygame.draw.rect(self.surface, [0,238,238], undo_button1)  # draw button
+            text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
+            text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
+            screen.blit(text_surface_object, text_rect1)
             
         pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
         font = pygame.font.Font('freesansbold.ttf', 30)
@@ -1534,12 +1540,6 @@ class Chess_Board(object):
                     else:
                         pass
 
-                    if event.type == pygame.MOUSEMOTION:
-                        mouse_pos2 = event.pos
-                        if(undo_button1.collidepoint(mouse_pos2)):
-                            pygame.draw.rect(screen, hover_col, undo_button1)
-                            pygame.display.update()    
-
                     if (len(self.game.prev_moves) != 0):
                         if (event.type == pygame.MOUSEBUTTONDOWN):
                             mouse_pos1 = event.pos  # gets mouse position
@@ -1560,11 +1560,11 @@ class Chess_Board(object):
                                     self.prev_move -= 1
                                     self.ai_undo = True
                                     
-                    pygame.draw.rect(screen, [0,238,238], undo_button1)  # draw button
-                    text_surface_object = pygame.font.SysFont('Helvetica', 10).render('undo', True, [0,0,0])    
-                    text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
-                    screen.blit(text_surface_object, text_rect1)
-                    pygame.display.update()
+                    # pygame.draw.rect(screen, [0,238,238], undo_button1)  # draw button
+                    # text_surface_object = pygame.font.SysFont('Helvetica', 10).render('undo', True, [0,0,0])    
+                    # text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
+                    # screen.blit(text_surface_object, text_rect1)
+                    # pygame.display.update()
 
                 if(self.user_clicks == 1):
                     #code to generate possible moves and to animate moving the pawn

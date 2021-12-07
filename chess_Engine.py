@@ -1375,6 +1375,7 @@ class Chess_Board(object):
                     select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
                     target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
                     time.sleep(3) # slow it down
+                    piece_remove = target['piece']
 
                 elif self.ai_mode == "alpha-beta":
                     best_move = alpha_beta_cutoff_search(self.game)
@@ -1383,8 +1384,13 @@ class Chess_Board(object):
                     else:
                         target = self.game.get_piece_dict(best_move[1][0], best_move[1][1])
                         select = self.game.get_piece_dict(best_move[0][0], best_move[0][1])
+                        piece_remove = target['piece']
 
                 self.game.make_move(select, target)
+                if piece_remove > 10:
+                    self.game.player1 = self.game.point_counter(piece_remove, self.game.player1)
+                else:
+                    self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
                 self.movesound.play()
                 self.prepare_next_turn()
 

@@ -43,7 +43,7 @@ undo_button1 = pygame.Rect(775, 385, 25, 25)
 pos1 = pygame.mouse.get_pos()
 
 screen = pygame.display.set_mode((displayWidth,displayHeight))
-undo_font = pygame.font.SysFont('Helvetica', 10)
+undo_font = pygame.font.SysFont(None, 10)
 # end of declarations                  
 
 #This calls pygame to exit the program.
@@ -123,14 +123,15 @@ class Chess_Board(object):
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
 
-        if len(self.game.prev_moves):
+        # Only show up if has prev moves and player's turn(s)
+        if len(self.game.prev_moves) and (self.ai == False or (self.ai and self.game.player == 1)):
             pygame.draw.rect(self.surface, [0,238,238], undo_button1)  # draw button
             text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
             text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
             screen.blit(text_surface_object, text_rect1)
             
         pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
-        font = pygame.font.Font('freesansbold.ttf', 30)
+        font = pygame.font.Font(None, 30)
         if self.ai == False:
             self.game.blitz = True
         if self.game.blitz == True:
@@ -166,8 +167,8 @@ class Chess_Board(object):
         
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont('Helvetica', displayHeight//6)
-        button_font = pygame.font.SysFont('Helvetica', displayHeight//18, 1)
+        font = pygame.font.SysFont(None, displayHeight//6)
+        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
         self.backgroundmusic()
 
         clock = pygame.time.Clock()
@@ -221,8 +222,8 @@ class Chess_Board(object):
         
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont('Helvetica', displayHeight//6)
-        button_font = pygame.font.SysFont('Helvetica', displayHeight//18, 1)
+        font = pygame.font.SysFont(None, displayHeight//6)
+        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
 
         clock = pygame.time.Clock()
         while True:
@@ -274,8 +275,8 @@ class Chess_Board(object):
         self.surface.fill((0,0,0))
         
         text1 = "Paused"
-        #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont('Helvetica', displayHeight//6)
+        #font = pygame.font.SysFont(None, 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//6)
         #button_font = pygame.font.SysFont(None, displayHeight//18, 1)
         text1 = font.render(text1, 1, (255, 215, 0))
         text_rect1 = text1.get_rect(center = (displayWidth// 2, displayHeight // 8))
@@ -289,22 +290,22 @@ class Chess_Board(object):
         pygame.draw.rect(self.surface, [211,211,211], button3)
 
         text2 = "Continue"
-        #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont('Helvetica', displayHeight//18, 1, 0)
+        #font = pygame.font.SysFont(None, 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text2 = font.render(text2, 1, (0,0,0))
         text_rect2 = text2.get_rect(center = (displayWidth// 2, displayHeight // 4 + displayHeight//16))
         self.surface.blit(text2, text_rect2)
 
         text3 = "Options"
-        #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont('Helvetica', displayHeight//18, 1, 0)
+        #font  = pygame.font.SysFont(None, 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text3 = font.render(text3, 1, (0,0,0))
         text_rect3 = text3.get_rect(center = (displayWidth// 2, displayHeight // 2 + displayHeight//16))
         self.surface.blit(text3, text_rect3)
 
         text4 = "Quit Game"
-        #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont('Helvetica', displayHeight//18, 1, 0)
+        #font  = pygame.font.SysFont(None, 36, 1, 0)
+        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
         text4 = font.render(text4, 1, (0,0,0))
         text_rect4 = text4.get_rect(center = (displayWidth// 2, displayHeight - displayHeight//4 + displayHeight//16))
         self.surface.blit(text4, text_rect4)
@@ -399,9 +400,9 @@ class Chess_Board(object):
         self.surface.blit(image7, button7)
         self.surface.blit(image8, button8)
 
-        titlefont = pygame.font.SysFont('Helvetica', displayHeight//8)
-        subtitlefont = pygame.font.SysFont('Helvetica', displayHeight//14)
-        font = pygame.font.SysFont('Helvetica', displayHeight//24)
+        titlefont = pygame.font.SysFont(None, displayHeight//8)
+        subtitlefont = pygame.font.SysFont(None, displayHeight//14)
+        font = pygame.font.SysFont(None, displayHeight//24)
         #text = titlefont.render("Customize Your Board", True, (255, 215, 0))
         self.draw_text('Customize Your Board', titlefont, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
         
@@ -646,8 +647,8 @@ class Chess_Board(object):
         image11 = COVERIMAGES[11]
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont('Helvetica', displayHeight//6)
-        button_font = pygame.font.SysFont('Helvetica', displayHeight//18, 1)
+        font = pygame.font.SysFont(None, displayHeight//6)
+        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
 
         while True:
             screen.fill((0,0,0))
@@ -807,8 +808,8 @@ class Chess_Board(object):
         self.surface.blit(second_surface, second_surface_rect)
 
 
-        font = pygame.font.SysFont('Helvetica' , displayHeight//18, 1)
-        font2 = pygame.font.SysFont('Helvetica', 36)
+        font = pygame.font.SysFont(None , displayHeight//18, 1)
+        font2 = pygame.font.SysFont(None, 36)
         if piece == 6:
             winner = "Black Wins!"
         if piece == 16:
@@ -911,7 +912,7 @@ class Chess_Board(object):
         select_y = math.floor(select_y / squareSize)
         if select_x < 8 and select_y < 8:
             piece = self.game.board[select_y][select_x]
-            print( (select_y, select_x) )
+            #print( (select_y, select_x) )
         else:
             piece = -1
 
@@ -1107,8 +1108,8 @@ class Chess_Board(object):
             self.surface.blit(image13, button13)
             self.surface.blit(image14, button14)
             self.surface.blit(image15, button15) 
-            titlefont = pygame.font.SysFont('Helvetica', 36)
-            font = pygame.font.SysFont('Helvetica', 28)
+            titlefont = pygame.font.SysFont(None, 36)
+            font = pygame.font.SysFont(None, 28)
             text = titlefont.render("Choose Piece to Promote to!", (255, 215, 0))
             text12 = font.render("Knight", True, (0,0,0))
             text13 = font.render("Rook", True, (0,0,0))
@@ -1239,7 +1240,7 @@ class Chess_Board(object):
             self.surface.blit(image3, button3)
             self.surface.blit(image4, button4)
             self.surface.blit(image5, button5) 
-            font = pygame.font.SysFont('Helvetica', displayHeight//20)
+            font = pygame.font.SysFont(None, displayHeight//20)
             text = font.render("Choose Piece to Promote to!", True, (255, 215, 0))
             text2 = font.render("Knight", True, (0,0,0))
             text3 = font.render("Rook", True, (0,0,0))
@@ -1561,7 +1562,7 @@ class Chess_Board(object):
                                     self.ai_undo = True
                                     
                     # pygame.draw.rect(screen, [0,238,238], undo_button1)  # draw button
-                    # text_surface_object = pygame.font.SysFont('Helvetica', 10).render('undo', True, [0,0,0])    
+                    # text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
                     # text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
                     # screen.blit(text_surface_object, text_rect1)
                     # pygame.display.update()

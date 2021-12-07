@@ -14,6 +14,7 @@ PURPLE = (106, 90, 205)
 BLUE = (28, 155, 188)
 GREEN = (60, 179, 113)
 RED = (255,0,0)
+LIGHTBLUE = (102,102,255)
 clr_dict = { 			#change here
     "Red" : (255, 0, 0),
     "Lime" : (0, 255, 0),
@@ -29,8 +30,8 @@ clr_dict = { 			#change here
 Color2 = clr_dict["Yellow"]
 Color1 = clr_dict["Red"]
 displayWidth = 800
-displayHeight = 800
-squareSize = displayHeight//8
+displayHeight = 900
+squareSize = 800//8
 COVERIMAGES = {}
 IMAGES = {}
 pygame.mixer.pre_init(44100, -16, 2, 2048)
@@ -42,7 +43,7 @@ undo_button1 = pygame.Rect(775, 385, 25, 25)
 pos1 = pygame.mouse.get_pos()
 
 screen = pygame.display.set_mode((displayWidth,displayHeight))
-undo_font = pygame.font.SysFont(None, 10)
+undo_font = pygame.font.SysFont('Helvetica', 10)
 # end of declarations                  
 
 #This calls pygame to exit the program.
@@ -108,7 +109,7 @@ class Chess_Board(object):
         #This function should set up the peices and be used to make changes to the pieces.
 
     def draw_board(self):
-          for x in range(8):
+        for x in range(8):
             for y in range(8):
                 if (y % 2 == 0 and x %2 == 0):
                    pygame.draw.rect(self.surface, self.square1color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
@@ -121,6 +122,32 @@ class Chess_Board(object):
                 
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+            
+        pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
+        font = pygame.font.Font('freesansbold.ttf', 30)
+        if self.ai == False:
+            self.game.blitz = True
+        if self.game.blitz == True:
+            text_p1time = font.render("P1 Time: " + str(self.game.p1_count), True, WHITE)
+            text_p1score = font.render("P1 Score: " + str(self.game.player1), True, WHITE) 
+            text_p2time = font.render("P2 Time: " +str(self.game.p2_count), True, WHITE)
+            text_p2score = font.render("P2 Score: " + str(self.game.player2), True, WHITE) 
+            text_p1time_rect = text_p1time.get_rect(center=(160,850-25))
+            text_p2time_rect = text_p2time.get_rect(center=(640,850-25))
+            text_p1score_rect = text_p1score.get_rect(center=(160,850+25))
+            text_p2score_rect = text_p2score.get_rect(center=(640,850+25))
+            self.surface.blit(text_p1time,text_p1time_rect)
+            self.surface.blit(text_p2time,text_p2time_rect)
+            self.surface.blit(text_p1score,text_p1score_rect)
+            self.surface.blit(text_p2score,text_p2score_rect)
+        else:
+            text = font.render("player 1: " + str(self.game.player1)+" player 2: " + str(self.game.player2), True, WHITE)
+            text_p1score = font.render("P1 Score: " + str(self.game.player1), True, WHITE)
+            text_p2score = font.render("P2 Score: " + str(self.game.player2), True, WHITE) 
+            text_p1score_rect = text_p1score.get_rect(center=(160,850))
+            text_p2score_rect = text_p2score.get_rect(center=(640,850))
+            self.surface.blit(text_p1score,text_p1score_rect)
+            self.surface.blit(text_p2score,text_p2score_rect)
 
     def draw_text(self, text, font, color, surface, x, y):
         textobj = font.render(text, 1, color)
@@ -133,8 +160,8 @@ class Chess_Board(object):
         
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont(None, displayHeight//6)
-        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
+        font = pygame.font.SysFont('Helvetica', displayHeight//6)
+        button_font = pygame.font.SysFont('Helvetica', displayHeight//18, 1)
         self.backgroundmusic()
 
         clock = pygame.time.Clock()
@@ -188,8 +215,8 @@ class Chess_Board(object):
         
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont(None, displayHeight//6)
-        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
+        font = pygame.font.SysFont('Helvetica', displayHeight//6)
+        button_font = pygame.font.SysFont('Helvetica', displayHeight//18, 1)
 
         clock = pygame.time.Clock()
         while True:
@@ -242,7 +269,7 @@ class Chess_Board(object):
         
         text1 = "Paused"
         #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont(None, displayHeight//6)
+        font = pygame.font.SysFont('Helvetica', displayHeight//6)
         #button_font = pygame.font.SysFont(None, displayHeight//18, 1)
         text1 = font.render(text1, 1, (255, 215, 0))
         text_rect1 = text1.get_rect(center = (displayWidth// 2, displayHeight // 8))
@@ -257,21 +284,21 @@ class Chess_Board(object):
 
         text2 = "Continue"
         #font = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
+        font = pygame.font.SysFont('Helvetica', displayHeight//18, 1, 0)
         text2 = font.render(text2, 1, (0,0,0))
         text_rect2 = text2.get_rect(center = (displayWidth// 2, displayHeight // 4 + displayHeight//16))
         self.surface.blit(text2, text_rect2)
 
         text3 = "Options"
         #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
+        font = pygame.font.SysFont('Helvetica', displayHeight//18, 1, 0)
         text3 = font.render(text3, 1, (0,0,0))
         text_rect3 = text3.get_rect(center = (displayWidth// 2, displayHeight // 2 + displayHeight//16))
         self.surface.blit(text3, text_rect3)
 
         text4 = "Quit Game"
         #font  = pygame.font.SysFont('Helvetica', 36, 1, 0)
-        font = pygame.font.SysFont(None, displayHeight//18, 1, 0)
+        font = pygame.font.SysFont('Helvetica', displayHeight//18, 1, 0)
         text4 = font.render(text4, 1, (0,0,0))
         text_rect4 = text4.get_rect(center = (displayWidth// 2, displayHeight - displayHeight//4 + displayHeight//16))
         self.surface.blit(text4, text_rect4)
@@ -366,9 +393,9 @@ class Chess_Board(object):
         self.surface.blit(image7, button7)
         self.surface.blit(image8, button8)
 
-        titlefont = pygame.font.SysFont(None, displayHeight//8)
-        subtitlefont = pygame.font.SysFont(None, displayHeight//14)
-        font = pygame.font.SysFont(None, displayHeight//24)
+        titlefont = pygame.font.SysFont('Helvetica', displayHeight//8)
+        subtitlefont = pygame.font.SysFont('Helvetica', displayHeight//14)
+        font = pygame.font.SysFont('Helvetica', displayHeight//24)
         #text = titlefont.render("Customize Your Board", True, (255, 215, 0))
         self.draw_text('Customize Your Board', titlefont, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
         
@@ -613,8 +640,8 @@ class Chess_Board(object):
         image11 = COVERIMAGES[11]
         resolution = (displayWidth, displayHeight)
         screen = pygame.display.set_mode(resolution)
-        font = pygame.font.SysFont(None, displayHeight//6)
-        button_font = pygame.font.SysFont(None, displayHeight//18, 1)
+        font = pygame.font.SysFont('Helvetica', displayHeight//6)
+        button_font = pygame.font.SysFont('Helvetica', displayHeight//18, 1)
 
         while True:
             screen.fill((0,0,0))
@@ -774,8 +801,8 @@ class Chess_Board(object):
         self.surface.blit(second_surface, second_surface_rect)
 
 
-        font = pygame.font.SysFont(None , displayHeight//18, 1)
-        font2 = pygame.font.SysFont(None, 36)
+        font = pygame.font.SysFont('Helvetica' , displayHeight//18, 1)
+        font2 = pygame.font.SysFont('Helvetica', 36)
         if piece == 6:
             winner = "Black Wins!"
         if piece == 16:
@@ -876,7 +903,11 @@ class Chess_Board(object):
         select_x, select_y = pygame.mouse.get_pos()
         select_x = math.floor(select_x / squareSize)
         select_y = math.floor(select_y / squareSize)
-        piece = self.game.board[select_y][select_x]
+        if select_x < 8 and select_y < 8:
+            piece = self.game.board[select_y][select_x]
+            print( (select_y, select_x) )
+        else:
+            piece = -1
 
         # Checking if the user is just selecting a piece to move
         if self.user_clicks == 0:
@@ -971,18 +1002,26 @@ class Chess_Board(object):
 
                 # check if select-target combo is in available moves
                 if move in self.valid_moves:
+                    piece_remove = self.game.board[self.target['y']][self.target['x']]
+
                     if self.target["piece"] != 0:
                         self.capture = True
                         self.capture_location[0] = self.target["x"] * 100 + 50
                         print(self.capture_location[0])
                         self.capture_location[1] = self.target["y"] * 100 + 50
                         print(self.capture_location[1])
+
                     self.game.make_move( self.select, self.target )
                     self.movesound.play()
                     self.update_castling_state(self.select)
                     self.update_castling_state(self.target)
                     self.prev_move += 1
                     self.user_clicks = 2
+                    if piece_remove > 10:
+                        self.game.player1 = self.game.point_counter(piece_remove, self.game.player1)
+                    else:
+                        self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
+                    #adding points
 
     # Keeps track rooks and kings for castling
     def update_castling_state(self, selected):
@@ -1062,8 +1101,8 @@ class Chess_Board(object):
             self.surface.blit(image13, button13)
             self.surface.blit(image14, button14)
             self.surface.blit(image15, button15) 
-            titlefont = pygame.font.SysFont(None, 36)
-            font = pygame.font.SysFont(None, 28)
+            titlefont = pygame.font.SysFont('Helvetica', 36)
+            font = pygame.font.SysFont('Helvetica', 28)
             text = titlefont.render("Choose Piece to Promote to!", (255, 215, 0))
             text12 = font.render("Knight", True, (0,0,0))
             text13 = font.render("Rook", True, (0,0,0))
@@ -1194,7 +1233,7 @@ class Chess_Board(object):
             self.surface.blit(image3, button3)
             self.surface.blit(image4, button4)
             self.surface.blit(image5, button5) 
-            font = pygame.font.SysFont(None, displayHeight//20)
+            font = pygame.font.SysFont('Helvetica', displayHeight//20)
             text = font.render("Choose Piece to Promote to!", True, (255, 215, 0))
             text2 = font.render("Knight", True, (0,0,0))
             text3 = font.render("Rook", True, (0,0,0))
@@ -1393,9 +1432,30 @@ class Chess_Board(object):
         self.main_Menu()
         if self.ai == True:
             self.Ai_Menu()
-        
+        start_ticks = pygame.time.get_ticks()
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
+            if self.user_clicks == 0:
+                self.draw_board()
+                self.drawPieces()
+                pygame.display.update()
+            if self.game.blitz == True:
+                if self.game.player == 1 and self.game.time_up == False:
+                    if self.game.p1_count <= 0:
+                        print("P1 loses time ran out")
+                        self.end_screen(6)
+                        self.game.time_up = True
+                    self.game.p1_count = round(self.game.p1_count-((pygame.time.get_ticks() - start_ticks)/1000)) + self.game.current_time
+                    self.game.current_time = round((pygame.time.get_ticks() - start_ticks)/1000)
+
+                elif self.game.player == 2 and self.game.time_up == False:
+                    if self.game.p2_count <= 0:
+                        print("P2 loses time ran out")
+                        self.end_screen(16)
+                        self.game.time_up = True
+                    self.game.p2_count = round(self.game.p2_count-((pygame.time.get_ticks() - start_ticks)/1000)) + self.game.current_time
+                    self.game.current_time = round((pygame.time.get_ticks() - start_ticks)/1000)
+
             if self.game.player == 2 and self.ai:
                 if self.ai_mode == "random":
                     if len(self.valid_moves) > 0:
@@ -1418,7 +1478,6 @@ class Chess_Board(object):
                     self.capture = True
                     self.capture_location[0] = target["x"] * 100 + 50
                     self.capture_location[1] = target["y"] * 100 + 50
-                self.game.make_move(select, target)
 
                 # When AI picked a castling move (could be a function but too lazy lol)
                 if (select['piece'] == 13 and target['piece'] == 16) or (select['piece'] == 16 and target['piece'] == 13):
@@ -1502,7 +1561,7 @@ class Chess_Board(object):
                                     self.ai_undo = True
                                     
                     pygame.draw.rect(screen, [0,238,238], undo_button1)  # draw button
-                    text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
+                    text_surface_object = pygame.font.SysFont('Helvetica', 10).render('undo', True, [0,0,0])    
                     text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
                     screen.blit(text_surface_object, text_rect1)
                     pygame.display.update()
@@ -1545,14 +1604,15 @@ class Chess_Board(object):
                     
                     self.prepare_next_turn()
                     self.user_clicks = 0
-    
-                self.clock.tick(60)
+
             if self.capture == True:
                 self.explosion_runthrough()
                 self.capture = False
                 self.draw_board()
                 self.drawPieces()
                 pygame.display.update()
+    
+            self.clock.tick(60)
 
         quit()
 

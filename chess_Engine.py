@@ -39,7 +39,8 @@ pygame.init()
 pack = 'images/Originals'
 # start of declarations
 hover_col = (75, 225, 255)
-undo_button1 = pygame.Rect(400, 825, 25, 25) 
+undo_button1 = pygame.Rect(displayWidth//2, 850, 200, 50)
+undo_button1.center = (displayWidth//2, 850)
 pos1 = pygame.mouse.get_pos()
 
 screen = pygame.display.set_mode((displayWidth,displayHeight))
@@ -130,15 +131,16 @@ class Chess_Board(object):
                 
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+            
+        pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
 
         # Only show up if has prev moves and player's turn(s)
         if len(self.game.prev_moves) and (self.ai == False or (self.ai and self.game.player == 1)):
-            pygame.draw.rect(self.surface, [0,238,238], undo_button1)  # draw button
-            text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
+            pygame.draw.rect(self.surface, (64, 64, 64), undo_button1)  # draw button
+            text_surface_object = pygame.font.SysFont(None, displayHeight//18).render('UNDO', True, WHITE)    
             text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
             screen.blit(text_surface_object, text_rect1)
-            
-        pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
+
         font = pygame.font.Font(None, 30)
         if self.ai == False:
             self.game.blitz = True

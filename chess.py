@@ -137,7 +137,7 @@ class Chess():
             # Do extra move if there's one
             self.board[ extra_move[0]['y'] ][ extra_move[0]['x'] ] = 0
             self.board[ extra_move[1]['y'] ][ extra_move[1]['x'] ] = extra_move[0]['piece']
-            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling) (self.player1, self.player2),
+            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling), (self.player1, self.player2),
                                     extra_move[0], extra_move[1], copy.deepcopy(self.track_castling), (self.player1, self.player2)))
         else:
             self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling), (self.player1, self.player2)))

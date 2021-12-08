@@ -83,6 +83,7 @@ class Chess_Board(object):
         self.square2color = BROWN
         self.capture = False
         self.capture_location = [0,0]
+        self.explosionmainspeed = 10
     def setUp(self):
         #imports all available pygame modules
         
@@ -247,7 +248,7 @@ class Chess_Board(object):
         while True:
             screen.fill((0,0,0))
 
-            self.draw_text('Choose Your Ai', font, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
+            self.draw_text('Choose Your AI', font, (255, 215, 0), screen, displayWidth//20, displayHeight//20)
 
             mx, my = pygame.mouse.get_pos()
 
@@ -256,9 +257,9 @@ class Chess_Board(object):
             button3 = pygame.Rect(displayWidth//4, (displayHeight//2) + (displayHeight//4), displayWidth//2, displayHeight//8)
 
             pygame.draw.rect(screen, (211, 211, 211), button1)
-            self.draw_text('Alpha Beta Pruning Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
+            self.draw_text('Alpha-Beta AI', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//4)
             pygame.draw.rect(screen, (211, 211, 211), button2)
-            self.draw_text('Random Ai', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2)
+            self.draw_text('Random AI', button_font, (0, 0, 0), screen, displayWidth//4, displayHeight//2)
             pygame.draw.rect(screen, (211, 211, 211), button3)
             self.draw_text('Exit', button_font, (0, 0, 0), screen, displayWidth//4, (displayHeight//2) + (displayHeight//4))
 
@@ -1099,14 +1100,16 @@ class Chess_Board(object):
             self.game.undo_move()
             self.ai_turn = False
             self.prev_move -= 1
-            self.user_clicks = 2
+            self.user_clicks = 0
+            self.prepare_next_turn()
 
             if (self.ai == True):
                 self.ai_turn = False
                 self.game.undo_move()
                 self.prev_move -= 1
-                self.ai_undo = True
+                self.ai_undo = False
                 self.ai_turn = False
+                self.prepare_next_turn()
 
         # This function can be used to add more key commands later down the line.
     
@@ -1451,11 +1454,14 @@ class Chess_Board(object):
         pygame.mixer.music.load('Background.wav')
         if sound_onOff == 'on':
             pygame.mixer.music.set_volume(.30)
+            self.explodesound.set_volume(.2)
             #pygame.mixer.music.play(-1)
         elif sound_onOff == 'off': 
             pygame.mixer.music.set_volume(0)
+            self.explodesound.set_volume(0)
         elif sound_onOff == 'low':
             pygame.mixer.music.set_volume(.05)
+            self.explodesound.set_volume(.05)
         pygame.mixer.music.play(-1)
         
     def explosion_runthrough(self):
@@ -1469,7 +1475,7 @@ class Chess_Board(object):
 
             if self.capture == True:
                 explosion = animation.Explosion(
-                    self.capture_location[0], self.capture_location[1]
+                    self.capture_location[0], self.capture_location[1], self.explosionmainspeed
                 )
                 explosion_group.add(explosion)
                 self.capture = False
@@ -1486,7 +1492,6 @@ class Chess_Board(object):
             if self.ai == False or self.end_game == True:
                 break
             if (self.ai_turn == True and self.ai == True and self.end_game == False):
-                pygame.time.delay(2000)
                 self.best_move = alpha_beta_cutoff_search(self.game)
                 if(self.best_move == None):
                     self.ai = False
@@ -1499,7 +1504,15 @@ class Chess_Board(object):
                 else:
                     target = self.game.get_piece_dict(self.best_move[1][0], self.best_move[1][1])
                     select = self.game.get_piece_dict(self.best_move[0][0], self.best_move[0][1])
-                
+
+                if target["piece"] != 0:
+                    print("bob is a murderer")
+                    self.capture = True
+                    self.capture_location[0] = target["x"] * 100 + 50
+                    print(self.capture_location[0])
+                    self.capture_location[1] = target["y"] * 100 + 50
+                    print(self.capture_location[1])
+
                 piece_remove = target['piece']
                 self.game.make_move(select, target)
                 self.prev_move += 1
@@ -1508,7 +1521,18 @@ class Chess_Board(object):
                     self.game.player1 = self.game.point_counter(piece_remove, self.game.player1)
                 else:
                     self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
+
                 self.prepare_next_turn()
+
+                if self.capture == True:
+                    print("hi its bob")
+                    self.explosionmainspeed = 30
+                    self.explosion_runthrough()
+                    self.capture = False
+                    self.draw_board()
+                    self.drawPieces()
+                    pygame.display.update()
+
                 self.ai_turn = False
         self.end_game = True
         print("Good bye!")
@@ -1636,19 +1660,17 @@ class Chess_Board(object):
                             # checks if mouse position is over the button
                             if (undo_button1.collidepoint(mouse_pos1)):
                                 #switch to player
-                                self.user_clicks = 2
+                                self.user_clicks = 0
                                 self.prev_move -= 1
 
-                                if self.game.player == 1:
-                                    self.game.undo_move()
-                                    
-                                elif self.game.player == 2:
-                                    self.game.undo_move()
+                                self.game.undo_move()
+                                self.prepare_next_turn()
 
-                                if self.ai == True:
+                                if self.ai == True :
                                     self.game.undo_move()
+                                    self.prepare_next_turn()
                                     self.prev_move -= 1
-                                    self.ai_undo = True
+                                    self.ai_undo = False
 
                 if self.user_clicks == 1 and self.ai_turn == False:
                     #code to generate possible moves and to animate moving the pawn
@@ -1689,13 +1711,34 @@ class Chess_Board(object):
                         evemt = pygame.event.wait()
                         pygame.display.update()
 
+                    self.prepare_next_turn()
+                    if self.capture == True and self.ai == True and self.ai_mode == "alpha-beta":
+                        self.explosionmainspeed = 4
+                        self.explosion_runthrough()
+                        self.capture = False
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                    if self.capture == True and self.ai == True and self.ai_mode == "random":
+                        self.explosionmainspeed = 30
+                        self.explosion_runthrough()
+                        self.capture = False
+                        self.draw_board()
+                        self.drawPieces()
+                        pygame.display.update()
+                    
                     if(self.ai_undo == False and self.ai == True):
                         self.ai_turn = True
-                    
-                    self.prepare_next_turn()
+                            # Make sure undo vs AI switches back to player's turn
+                    if self.ai_undo == True:
+                        self.game.player = 1
+                        self.ai_turn = False
+                        self.ai_undo = False
                     self.user_clicks = 0
 
-            if self.capture == True:
+
+            if self.capture == True and self.ai == False:
+                self.explosionmainspeed = 30
                 self.explosion_runthrough()
                 self.capture = False
                 self.draw_board()

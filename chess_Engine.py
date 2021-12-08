@@ -1500,9 +1500,14 @@ class Chess_Board(object):
                     target = self.game.get_piece_dict(self.best_move[1][0], self.best_move[1][1])
                     select = self.game.get_piece_dict(self.best_move[0][0], self.best_move[0][1])
                 
+                piece_remove = target['piece']
                 self.game.make_move(select, target)
                 self.prev_move += 1
                 self.movesound.play()
+                if piece_remove > 10:
+                    self.game.player1 = self.game.point_counter(piece_remove, self.game.player1)
+                else:
+                    self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
                 self.prepare_next_turn()
                 self.ai_turn = False
         self.end_game = True
@@ -1554,6 +1559,7 @@ class Chess_Board(object):
                     select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
                     target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
                     pygame.time.delay(3000)
+                    piece_remove = target['piece']
                 else: # draw situation
                     self.end_screen(16)
                 
@@ -1599,6 +1605,11 @@ class Chess_Board(object):
                     self.game.make_move(select, target)
                     self.update_castling_state(select)
                     self.update_castling_state(target)
+
+                    if piece_remove > 10:
+                        self.game.player1 = self.game.point_counter(piece_remove, self.game.player1)
+                    else:
+                        self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
 
                 self.prev_move += 1
                 self.movesound.play()

@@ -137,10 +137,10 @@ class Chess():
             # Do extra move if there's one
             self.board[ extra_move[0]['y'] ][ extra_move[0]['x'] ] = 0
             self.board[ extra_move[1]['y'] ][ extra_move[1]['x'] ] = extra_move[0]['piece']
-            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling),
-                                    extra_move[0], extra_move[1], copy.deepcopy(self.track_castling)))
+            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling) (self.player1, self.player2),
+                                    extra_move[0], extra_move[1], copy.deepcopy(self.track_castling), (self.player1, self.player2)))
         else:
-            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling)))
+            self.prev_moves.append((from_dict, to_dict, copy.deepcopy(self.track_castling), (self.player1, self.player2)))
         
 
     def is_valid_move(self, select, targetTuple):
@@ -713,11 +713,13 @@ class Chess():
         return moves
 
     def undo_move(self):
-        for i in range(0, len(self.prev_moves[-1]), 3):
+        for i in range(0, len(self.prev_moves[-1]), 4):
             self.board[self.prev_moves[-1][i]['y']][self.prev_moves[-1][i]['x']] = self.prev_moves[-1][i]['piece']
             self.board[self.prev_moves[-1][i+1]['y']][self.prev_moves[-1][i+1]['x']] = self.prev_moves[-1][i+1]['piece']
 
             self.track_castling = copy.deepcopy(self.prev_moves[-1][i+2])
+            self.player1 = copy.deepcopy(self.prev_moves[-1][i+3][0])
+            self.player2 = copy.deepcopy(self.prev_moves[-1][i+3][1])
 
             if(self.prev_moves[-1][i]['piece'] == 6):
                 self._white_king = (self.prev_moves[-1][i]['y'], self.prev_moves[-1][i]['x'])

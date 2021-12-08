@@ -2,7 +2,7 @@
 #Essentially this will be where pygame is programmed and the other file will be where the chess 
 #functions will be called.
 
-import pygame, sys, time, math, copy, chess, os, random, numpy as np, animation
+import pygame, sys, math, chess, os, threading, random, numpy as np, animation
 
 #These are varoables representing colors BROWN and White for pygame applications.
 available_moves_tf = True
@@ -39,7 +39,8 @@ pygame.init()
 pack = 'images/Originals'
 # start of declarations
 hover_col = (75, 225, 255)
-undo_button1 = pygame.Rect(775, 385, 25, 25) 
+undo_button1 = pygame.Rect(displayWidth//2, 850, 200, 50)
+undo_button1.center = (displayWidth//2, 850)
 pos1 = pygame.mouse.get_pos()
 
 screen = pygame.display.set_mode((displayWidth,displayHeight))
@@ -68,11 +69,15 @@ class Chess_Board(object):
         self.buttonclick = pygame.mixer.Sound('buttonClick.wav')
         self.movesound = pygame.mixer.Sound('ChessClick.wav')
         self.explodesound = pygame.mixer.Sound('john.wav')
+        self.end_game = False
 
         self.ai = False
+        self.ai_turn = False
         self.ai_undo = False
+        self.best_move = None
+        self.victor = None
         self.ai_mode = "alpha-beta"
-
+        self.ai_thread = threading.Thread(target=self.ai_move)
         self.valid_moves = self.game.get_valid_moves()
         self.square1color = WHITE
         self.square2color = BROWN
@@ -99,7 +104,14 @@ class Chess_Board(object):
     
         self.load_Images(pack)
         self.drawPieces()
-
+        pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
+        font = pygame.font.Font('freesansbold.ttf', 40)
+        text = font.render("player 1: " + str(self.game.player1)+" player 2: " + str(self.game.player2), True, WHITE)
+        text_score_rect = text.get_rect(center =(displayWidth/2, (100/2)+800))
+        self.surface.blit(text,text_score_rect)
+        
+        self.load_Images(pack)
+        self.drawPieces()
         # updates the pygame screen.
         pygame.display.update()
         
@@ -107,6 +119,7 @@ class Chess_Board(object):
         
         self.clock = pygame.time.Clock()
         #This function should set up the peices and be used to make changes to the pieces.
+        
 
     def draw_board(self):
         for x in range(8):
@@ -122,15 +135,16 @@ class Chess_Board(object):
                 
                 elif (y %2 == 1 and x%2 == 0):
                     pygame.draw.rect(self.surface, self.square2color, pygame.Rect(y * squareSize , x * squareSize , squareSize , squareSize ))
+            
+        pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
 
         # Only show up if has prev moves and player's turn(s)
         if len(self.game.prev_moves) and (self.ai == False or (self.ai and self.game.player == 1)):
-            pygame.draw.rect(self.surface, [0,238,238], undo_button1)  # draw button
-            text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
+            pygame.draw.rect(self.surface, (64, 64, 64), undo_button1)  # draw button
+            text_surface_object = pygame.font.SysFont(None, displayHeight//18).render('UNDO', True, WHITE)    
             text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
             screen.blit(text_surface_object, text_rect1)
-            
-        pygame.draw.rect(self.surface,LIGHTBLUE,pygame.Rect(0,800,800,900))
+
         font = pygame.font.Font(None, 30)
         if self.ai == False:
             self.game.blitz = True
@@ -156,6 +170,7 @@ class Chess_Board(object):
             self.surface.blit(text_p1score,text_p1score_rect)
             self.surface.blit(text_p2score,text_p2score_rect)
 
+            
     def draw_text(self, text, font, color, surface, x, y):
         textobj = font.render(text, 1, color)
         textrect = textobj.get_rect()
@@ -195,8 +210,10 @@ class Chess_Board(object):
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
+                        self.end_game = True
                         quit()
                 elif event.type == pygame.QUIT:
+                    self.end_game = True
                     quit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if button1.collidepoint((mx, my)):
@@ -214,6 +231,7 @@ class Chess_Board(object):
                         return None
                     elif button3.collidepoint((mx, my)):
                         self.buttonclick.play()
+                        self.end_game = True
                         quit()
 
             pygame.display.update()
@@ -249,6 +267,7 @@ class Chess_Board(object):
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
+                        self.end_game = True
                         quit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if button1.collidepoint((mx, my)):
@@ -264,6 +283,7 @@ class Chess_Board(object):
                         pygame.display.update()
                         return None
                     elif button3.collidepoint((mx, my)):
+                        self.end_game = True
                         quit()
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -321,6 +341,7 @@ class Chess_Board(object):
             for event in pygame.event.get():
                 mouse_pos = pygame.mouse.get_pos()
                 if event.type == pygame.QUIT:
+                    self.end_game = True
                     quit()
                 if button.collidepoint(mouse_pos):
                     pygame.draw.rect(self.surface, [255,255,255], button)
@@ -352,6 +373,7 @@ class Chess_Board(object):
                         return None
                     elif button3.collidepoint(mouse_pos):
                         self.buttonclick.play()
+                        self.end_game = True
                         quit()                
                
                 pygame.display.update()
@@ -461,6 +483,7 @@ class Chess_Board(object):
             for event in pygame.event.get():
                 pos2 = pygame.mouse.get_pos()
                 if event.type == pygame.QUIT:
+                    self.end_game = True
                     quit()
             
             print(pos2)
@@ -710,6 +733,7 @@ class Chess_Board(object):
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.end_game = True
                     quit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
@@ -876,6 +900,7 @@ class Chess_Board(object):
             pygame.display.update()
         if click2 == True:
             self.buttonclick.play()
+            self.end_game = True
             quit()
         if click1 == True:
             self.buttonclick.play()
@@ -912,7 +937,6 @@ class Chess_Board(object):
         select_y = math.floor(select_y / squareSize)
         if select_x < 8 and select_y < 8:
             piece = self.game.board[select_y][select_x]
-            #print( (select_y, select_x) )
         else:
             piece = -1
 
@@ -1029,6 +1053,7 @@ class Chess_Board(object):
                     else:
                         self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
                     #adding points
+                    
 
     # Keeps track rooks and kings for castling
     def update_castling_state(self, selected):
@@ -1057,6 +1082,7 @@ class Chess_Board(object):
     
     def keyboard_commands(self, event):
         if event.key == pygame.K_q and pygame.key.get_mods() and pygame.KMOD_CTRL:
+            self.end_game = True
             quit()
             sys.exit()
         
@@ -1069,14 +1095,18 @@ class Chess_Board(object):
 
         elif event.key == pygame.K_z and pygame.key.get_mods() and pygame.KMOD_CTRL and self.prev_move > 0:
             # CTRL + Z undos the move
+            self.ai_turn = False
             self.game.undo_move()
+            self.ai_turn = False
             self.prev_move -= 1
             self.user_clicks = 2
 
             if (self.ai == True):
+                self.ai_turn = False
                 self.game.undo_move()
                 self.prev_move -= 1
                 self.ai_undo = True
+                self.ai_turn = False
 
         # This function can be used to add more key commands later down the line.
     
@@ -1382,18 +1412,35 @@ class Chess_Board(object):
         # Make sure undo vs AI switches back to player's turn
         if self.ai_undo == True:
             self.game.player = 1
+            self.ai_turn = False
             self.ai_undo = False
 
         moves = self.game.get_valid_moves()
         valid_moves = self.game.further_validation(moves)
         self.game.get_valid_castling(moves)
-        if len(valid_moves) == 0 and self.game.check():
-            if (self.game.player == 1):
-                self.end_screen(6)
-            else:
-                self.end_screen(16)
         if len(valid_moves) == 0:
-            self.end_screen(-1)
+            if self.game.check():
+                if (self.game.player == 1):
+                    if(self.ai == True and self.ai_mode == "alpha-beta"):
+                        self.end_game = True
+                        self.victor = 6
+                        return None
+                    print("hello world")
+                    self.end_screen(6)
+                
+                else:
+
+                    if(self.ai == True and self.ai_mode == "alpha-beta"):
+                        self.end_game = True
+                        self.victor = 16
+                        return None
+                    self.end_screen(16)
+            else:
+                if(self.ai == True and self.ai_mode == "alpha-beta"):
+                    self.end_game = True
+                    self.victor = -1
+                    return None
+                self.end_screen(-1) 
         self.valid_moves = moves
 
     # This function starts up the game and sets all the parameters of said game.
@@ -1431,7 +1478,42 @@ class Chess_Board(object):
                 run = False
                 print("empty Sprites")
             pygame.display.update()
-        
+    
+
+    def ai_move(self):
+        print("hello")
+        while(True):
+            if self.ai == False or self.end_game == True:
+                break
+            if (self.ai_turn == True and self.ai == True and self.end_game == False):
+                pygame.time.delay(2000)
+                self.best_move = alpha_beta_cutoff_search(self.game)
+                if(self.best_move == None):
+                    self.ai = False
+                    #self.ai_thread.join()
+                    if self.game.check():
+                        self.victor = 16
+                    else:
+                        self.victor = -1
+                    break
+                else:
+                    target = self.game.get_piece_dict(self.best_move[1][0], self.best_move[1][1])
+                    select = self.game.get_piece_dict(self.best_move[0][0], self.best_move[0][1])
+                
+                piece_remove = target['piece']
+                self.game.make_move(select, target)
+                self.prev_move += 1
+                self.movesound.play()
+                if piece_remove > 10:
+                    self.game.player1 = self.game.point_counter(piece_remove, self.game.player1)
+                else:
+                    self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
+                self.prepare_next_turn()
+                self.ai_turn = False
+        self.end_game = True
+        print("Good bye!")
+        return None
+
     
     def start_game(self):
 
@@ -1439,13 +1521,18 @@ class Chess_Board(object):
         self.main_Menu()
         if self.ai == True:
             self.Ai_Menu()
+            if (self.ai_mode == "alpha-beta"):
+                self.ai_thread.start()
+
         start_ticks = pygame.time.get_ticks()
+
         # This is the main loop the game will run through until it ends or gets restarted.
         while True:
-            if self.user_clicks == 0:
+            if not self.ai and self.user_clicks == 0:
                 self.draw_board()
                 self.drawPieces()
                 pygame.display.update()
+
             if self.game.blitz == True:
                 if self.game.player == 1 and self.game.time_up == False:
                     if self.game.p1_count <= 0:
@@ -1463,23 +1550,18 @@ class Chess_Board(object):
                     self.game.p2_count = round(self.game.p2_count-((pygame.time.get_ticks() - start_ticks)/1000)) + self.game.current_time
                     self.game.current_time = round((pygame.time.get_ticks() - start_ticks)/1000)
 
-            if self.game.player == 2 and self.ai:
-                if self.ai_mode == "random":
-                    if len(self.valid_moves) > 0:
-                        random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
-                        select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
-                        target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
-                        pygame.time.delay(3000)
-                    else: # draw situation
-                        self.end_screen(16)
+            if self.end_game == True and self.ai_mode == "alpha-beta":
+                self.end_screen(self.victor)
 
-                elif self.ai_mode == "alpha-beta":
-                    best_move = alpha_beta_cutoff_search(self.game)
-                    if(best_move == None):
-                        self.end_screen(16)
-                    else:
-                        target = self.game.get_piece_dict(best_move[1][0], best_move[1][1])
-                        select = self.game.get_piece_dict(best_move[0][0], best_move[0][1])
+            if self.game.player == 2 and self.ai and self.ai_mode == "random":
+                if len(self.valid_moves) > 0:
+                    random_move = self.valid_moves[random.randrange(len(self.valid_moves))]
+                    select = self.game.get_piece_dict(random_move[0][0], random_move[0][1])
+                    target = self.game.get_piece_dict(random_move[1][0], random_move[1][1])
+                    pygame.time.delay(3000)
+                    piece_remove = target['piece']
+                else: # draw situation
+                    self.end_screen(16)
                 
                 if target["piece"] != 0:
                     self.capture = True
@@ -1524,19 +1606,26 @@ class Chess_Board(object):
                     self.update_castling_state(select)
                     self.update_castling_state(target)
 
+                    if piece_remove > 10:
+                        self.game.player1 = self.game.point_counter(piece_remove, self.game.player1)
+                    else:
+                        self.game.player2 = self.game.point_counter(piece_remove, self.game.player2)
+
                 self.prev_move += 1
                 self.movesound.play()
                 self.prepare_next_turn()
+                self.ai_turn = False
 
             else:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
+                        self.end_game = True
                         quit()
-                    elif event.type == pygame.KEYDOWN:
+                    elif event.type == pygame.KEYDOWN and self.ai_turn == False:
                         self.key_pressed_down_event(event)
-                    elif event.type == pygame.KEYUP:
+                    elif event.type == pygame.KEYUP and self.ai_turn == False:
                         self.key_let_go_event(event)
-                    elif pygame.mouse.get_pressed()[0]:
+                    elif pygame.mouse.get_pressed()[0] and self.ai_turn == False:
                         self.handle_mousedown(event)
                     else:
                         pass
@@ -1560,14 +1649,8 @@ class Chess_Board(object):
                                     self.game.undo_move()
                                     self.prev_move -= 1
                                     self.ai_undo = True
-                                    
-                    # pygame.draw.rect(screen, [0,238,238], undo_button1)  # draw button
-                    # text_surface_object = pygame.font.SysFont(None, 10).render('undo', True, [0,0,0])    
-                    # text_rect1 = text_surface_object.get_rect(center=undo_button1.center)   
-                    # screen.blit(text_surface_object, text_rect1)
-                    # pygame.display.update()
 
-                if(self.user_clicks == 1):
+                if self.user_clicks == 1 and self.ai_turn == False:
                     #code to generate possible moves and to animate moving the pawn
                     select_x, select_y = pygame.mouse.get_pos()
                     self.draw_board()
@@ -1589,8 +1672,11 @@ class Chess_Board(object):
                     self.clock.tick(60)
             
                 # if user clicks is 2 then we know some sort of board state occured. Now we have to update the board.
-                if (self.user_clicks == 2):
-
+                if self.user_clicks == 2:
+                    if self.game.player == 1 and self.game.p1_count < 10 and self.game.p2_count > 0 and self.game.time_up == False:
+                        self.game.p1_count = self.game.p1_count + 10
+                    elif self.game.player == 2 and self.game.p2_count < 10 and self.game.p2_count > 0 and self.game.time_up == False:
+                        self.game.p2_count = self.game.p2_count + 10
                     #Checks if the player can validly make a pawn promotion
                     if(self.isPawnPromotion(self.target['y'], self.target['x'])):
                         #update the board to show that the pawn moved to edge of board
@@ -1602,6 +1688,9 @@ class Chess_Board(object):
                         #this is to make pygame wait for user input.
                         evemt = pygame.event.wait()
                         pygame.display.update()
+
+                    if(self.ai_undo == False and self.ai == True):
+                        self.ai_turn = True
                     
                     self.prepare_next_turn()
                     self.user_clicks = 0
